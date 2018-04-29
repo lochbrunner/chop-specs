@@ -6,16 +6,47 @@
 * Static and structural typed
 * Compile time reflection (tbd)
 * Zero runtime cost abstraction
+* Few keywords
+* Allows expressive code
 
 Inspired by
 
 * Go
 * Scala
-* JavaScript
+* JavaScript (TypeScript)
 
 ## Examples
 
 ### Variables
+
+Define immutables:
+
+```
+x := 1
+``` 
+
+with explicit type
+
+```
+x := cast<int32>(1)    // or
+x := 1.as<int32>       // or
+x: int32 := 1
+``` 
+
+
+Define mutable
+
+```
+x: int      // declaration
+x <- 1      // definition
+```
+
+is the same as:
+
+```
+x: int <- 1     // declaration and definition
+y = 1           // Short notation using type deduction
+```
 
 #### Numbers
 
@@ -97,15 +128,61 @@ let obj = {
 }
 ```
 
-### Interfaces
+### Custom Types
 
 ```
-interface MyInterface = {
+type MyType = {
     a: int
     b: string
     c: {
         d: int
     }
+}
+```
+
+#### Combining types
+
+Having
+
+```
+type TypeA = {
+    a: int
+    c: int
+}
+
+type TypeB = {
+    b: int
+    c: int
+}
+```
+
+then
+
+```
+type TypeAandB = TypeA & TypeB
+```
+
+results in
+
+```
+type TypeAandB = {
+    a: int
+    b: int
+    c: int
+}
+```
+
+and 
+
+```
+type TypeAorB = TypeA | TypeB
+```
+
+results in
+
+```
+type TypeAorB = {
+    c: int
 }
 ```
 
@@ -118,6 +195,14 @@ let foo = (a: int) => {
 }
 ```
 
+with explicit type
+
+```
+let foo: int -> int = (a: int) => {
+    a * a
+}
+```
+
 or
 
 ```
@@ -126,10 +211,29 @@ let foo(a: int) = {
 }
 ```
 
-or using a interface as anonymous argument:
+You can create template function when using the `any` type
 
 ```
-interface Argument = {a: int}
+let foo(a: any) = {
+    a * a
+}
+```
+
+> Note: If the given type has no definition for the `*` operator, you get a compiler error.
+
+```
+let foo(a: any) = {
+    a * a
+}
+
+s := foo("Hello")       // Compiler error
+t := foo(3)             // Ok
+```
+
+Using a type as anonymous argument:
+
+```
+type Argument = {a: int}
 let foo = (Argument) => {
     a * a
 }
@@ -138,11 +242,13 @@ let foo = (Argument) => {
 is not the same as
 
 ```
-interface Argument = {a: int}
+type Argument = {a: int}
 let foo = (arg: Argument) => {
     arg.a * arg.a
 }
 ```
+
+> Hint: You can skip the curly bracket if there is only one expression.
 
 #### Higher order functions
 
@@ -160,10 +266,20 @@ let foo1 = foo(12)
 #### Extensions
 
 ```
-MyInterface.foo = (a: int) => {
+MyType.foo = (a: int) => {
     this.a = a
 }
 ```
+
+Assigning extensions to multiple types:
+
+```
+(MyType1 | MyType2).foo = (a: int) => {
+    this.a = a
+}
+```
+
+> Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
 
 ### Environment Variables
 
@@ -199,6 +315,24 @@ lazy let env = {
 }
 
 ```
+
+### Control Statements
+
+```
+if x := foo() > 0 {     // x is immutable
+    stderr.write(x);
+}
+```
+
+```
+outer_loop: for i in [1..10] {
+    inner_loop: for j = [1..i] {
+        if ... continue inner_loop;
+        if ... break outer_loop;
+    }
+}
+```
+
 
 Open points:
 * Using *JavaScript* keywords `let` and `const` or from *Scala* `var` and `val` ? Or `mut` for mutabldes?
