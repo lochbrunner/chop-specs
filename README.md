@@ -318,6 +318,8 @@ lazy let env = {
 
 ### Control Statements
 
+Declaration inside condition
+
 ```
 if x := foo() > 0 {     // x is immutable
     stderr.write(x);
@@ -333,7 +335,17 @@ outer_loop: for i in [1..10] {
 }
 ```
 
+### Pattern Matching
+
+```
+y := match x = {
+    case t: Type1 => t.foo()            // Match concrete type
+    case s: any & {m: int} => s.m       // `x` contains integer member `m`
+    case u: any & {m: 12} => 34         // `x` member `m` has value `12`
+    case x > 10 => 34                   // `x` is larger than 10
+} 
+```
 
 Open points:
-* Using *JavaScript* keywords `let` and `const` or from *Scala* `var` and `val` ? Or `mut` for mutabldes?
+* Using *JavaScript* keywords `let` and `const` or from *Scala* `var` and `val` ? Or `mut` for mutables? Or only operators (`:=`, `:`, `=` and `<-`)
 * Default access modifier `public` or `private` ?
