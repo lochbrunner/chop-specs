@@ -309,51 +309,7 @@ Assigning extensions to multiple types:
 
 Inspired by Unix Pipes
 
-Unnamed pipe:
-
-```
-composition := foo | faa | fuu
-```
-
-Which is the same as
-
-```
-composition := (arg1 : ArgType1) => {
-    fuu(faa(foo(arg1)))
-}
-```
-
-Using space is equivalent to newline:
-
-```
-composition := 
-    foo
-    | faa
-    | fuu
-```
-
-Switch
-
-```
-// this function has 2 unnamed output pipes
-switch: FooOutputType -> &2 := (input: pipe<FooOutputType>) => {
-    loop {
-        i :<< input
-        if ...
-            &0 << 12        // Write to first pipe
-        else
-            &1 << 34        // Write to second pipe
-    }
-}
-
-composition := 
-    foo
-    | switch
-    \ fuu   // Uses output of the first pipe of the switch  
-    \ fee   // Uses the output of the second pipe of the switch
-```
-
-#### Named pipe
+#### Basics: Named pipe
 
 ```
 my_pipe: pipe<int>
@@ -387,6 +343,90 @@ fibonacci() := {
     }
     result
 }
+
+#### Pipe compositions
+
+Unnamed pipe:
+
+```
+composition := foo | faa | fuu
+```
+
+Which is the same as
+
+```
+composition := (arg1 : ArgType1) => {
+    fuu(faa(foo(arg1)))
+}
+```
+
+Using space is equivalent to newline:
+
+```
+composition := 
+    foo
+    | faa
+    | fuu
+```
+
+Switch
+
+```
+// this function has 2 unnamed output pipes
+switch: FooOutputType -> &2 := (input: FooOutputType) => {
+    loop {
+        i :<< input
+        if ...
+            &0 << 12        // Write to first pipe
+        else
+            &1 << 34        // Write to second pipe
+    }
+}
+
+composition := 
+    foo
+    | switch
+    \ fuu       // Uses output of the first pipe of the switch
+      | faa     // Uses the output of fuu. Note: faa is not "multipiped"
+    \ fee       // Uses the output of the second pipe of the switch
+```
+
+Hints:
+
+You can *name* the unnamed pipes
+
+```
+my_pipe :- &1;
+my_pipe << ...
+```
+
+Accessing the pipes dynamically
+
+```
+i := 0
+&$i << ..       // May increase compile time because of complicated range checks
+```
+
+Returning named pipes:
+
+```
+switch: FooOutputType -> &2 := (input: FooOutputType) => {
+    loop {
+        i :<< input
+        if ...
+            good << 12        // Undeclared pipes are output types automatically
+        else
+            bad << 34
+    }
+}
+
+composition := 
+    foo
+    | switch    // Compiler knows that switch has these two *output* pipes
+    \bad sorry
+    \good hurray 
+
+```
 
 ### Environment Variables
 
