@@ -8,6 +8,7 @@
 * Zero runtime cost abstraction
 * Few keywords
 * Allows expressive code
+* No distinction be space ` ` and newline in the code.
 
 Inspired by
 
@@ -33,12 +34,11 @@ x := 1.as<int32>       // or
 x: int32 := 1
 ``` 
 
-
 Define mutable
 
 ```
 x: int      // declaration
-x <- 1      // definition
+x <- 1      // assignment
 ```
 
 is the same as:
@@ -53,22 +53,24 @@ y = 1           // Short notation using type deduction
 These lines are equivalent
 
 ```
-stack let a = 12
-let a = 12
-let a = {
+stack a := 12
+a: = 12
+a: = {
     foo(2)  // Doing some computation
     4       // Gets ignored here
     12      // Last expression gets returned
 }
-let a = {
+a: = {
     public default 12   // 12 gets returned (= anonym public member)
 }
 ```
 
-Allocating on the heap
+Kinds of ownership
 
 ```
-heap let b = 12
+stack a := 14    // Ownership by the scope
+shared b := 12   // Shared ownership (reference counting)
+unique c := 15   // Ownership will be moved
 ```
 
 Note
@@ -78,13 +80,20 @@ Note
 #### Strings
 
 ```
-let a = "Hello, World"
+a := "Hello, World"
 ```
+
+String-interpolation (Scala)
+
+```
+a:= s"Hello $name ${obj.foo()}"
+```
+
 
 #### Objects
 
 ```
-let obj = { 
+obj := { 
     public a = 12
     public b = a * 3
 }
@@ -93,24 +102,24 @@ let obj = {
 of
 
 ```
-let factory(arg: int) = { 
+factory(arg: int) := { 
     public a = arg
     public b = arg * 3
 }
 
-let obj = factory(12)
+obj := factory(12)
 
 ```
 
 Anonymous members
 
 ```
-let base = { 
+base = { 
     public a = 12
     public b = a * 3
 }
 
-let obj = {
+obj = {
     public base
     public c = 4
     public d = "Hello"
@@ -120,7 +129,7 @@ let obj = {
 here `obj` is equivalent to
 
 ```
-let obj = { 
+obj := { 
     public a = 12
     public b = a * 3
     public c = 4
@@ -137,6 +146,15 @@ type MyType = {
     c: {
         d: int
     }
+}
+```
+
+Extending types
+
+```
+type MyExtendedType = {
+    d: float32
+    MyType
 }
 ```
 
@@ -190,7 +208,7 @@ type TypeAorB = {
 
 
 ```
-let foo = (a: int) => {
+foo := (a: int) => {
     a * a
 }
 ```
@@ -198,7 +216,7 @@ let foo = (a: int) => {
 with explicit type
 
 ```
-let foo: int -> int = (a: int) => {
+foo: int -> int := (a: int) => {
     a * a
 }
 ```
@@ -206,15 +224,21 @@ let foo: int -> int = (a: int) => {
 or
 
 ```
-let foo(a: int) = {
+foo(a: int) := {
     a * a
 }
+```
+
+or simply
+
+```
+foo(a: int) := a * a
 ```
 
 You can create template function when using the `any` type
 
 ```
-let foo(a: any) = {
+foo(a: any) := {
     a * a
 }
 ```
@@ -222,7 +246,7 @@ let foo(a: any) = {
 > Note: If the given type has no definition for the `*` operator, you get a compiler error.
 
 ```
-let foo(a: any) = {
+foo(a: any) := {
     a * a
 }
 
@@ -234,7 +258,7 @@ Using a type as anonymous argument:
 
 ```
 type Argument = {a: int}
-let foo = (Argument) => {
+foo := (Argument) => {
     a * a
 }
 ```
@@ -243,7 +267,7 @@ is not the same as
 
 ```
 type Argument = {a: int}
-let foo = (arg: Argument) => {
+foo := (arg: Argument) => {
     arg.a * arg.a
 }
 ```
@@ -253,14 +277,14 @@ let foo = (arg: Argument) => {
 #### Higher order functions
 
 ```
-let foo = (arg1: int) => (arg2: int) => arg1 * arg2
+foo := (arg1: int) => (arg2: int) => arg1 * arg2
 ```
 
 #### Argument binding
 
 ```
-let foo = (arg1: int) => (arg2: int) => arg1 * arg2
-let foo1 = foo(12)
+foo := (arg1: int) => (arg2: int) => arg1 * arg2
+foo1 := foo(12)
 ```
 
 #### Extensions
@@ -281,6 +305,89 @@ Assigning extensions to multiple types:
 
 > Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
 
+### Piping
+
+Inspired by Unix Pipes
+
+Unnamed pipe:
+
+```
+composition := foo | faa | fuu
+```
+
+Which is the same as
+
+```
+composition := (arg1 : ArgType1) => {
+    fuu(faa(foo(arg1)))
+}
+```
+
+Using space is equivalent to newline:
+
+```
+composition := 
+    foo
+    | faa
+    | fuu
+```
+
+Switch
+
+```
+// this function has 2 unnamed output pipes
+switch: FooOutputType -> &2 := (input: pipe<FooOutputType>) => {
+    loop {
+        i :<< input
+        if ...
+            &0 << 12        // Write to first pipe
+        else
+            &1 << 34        // Write to second pipe
+    }
+}
+
+composition := 
+    foo
+    | switch
+    \ fuu   // Uses output of the first pipe of the switch  
+    \ fee   // Uses the output of the second pipe of the switch
+```
+
+#### Named pipe
+
+```
+my_pipe: pipe<int>
+
+foo := () => {
+    result: int;
+    // Do some magic
+    // ...
+    result
+} 
+
+lazy my_pipe << foo()
+// Nothing happened so far
+
+i :<< my_pipe       // Here foo gets called
+```
+
+Using as a generator
+
+fibonacci() := {
+    shared result: pipe<int>    // named pipes should always have `shared` ownership
+    i = 0
+    j = 1
+
+    // The lazy loop gets only evaluated when the someone reads from the pipe
+    lazy loop {
+        t := i + j
+        i <- j
+        j <- t
+        result << t
+    }
+    result
+}
+
 ### Environment Variables
 
 * Inspired by unix shell
@@ -288,16 +395,16 @@ Assigning extensions to multiple types:
 
 
 ```
-let foo() =  {
+foo() =  {
     require a: logger: (string) => void
     require a: int
     logger("Entering foo")
-    let b = a              // Accessing variable of caller
+    b := a              // Accessing variable of caller
 }
 
 {   // Defining a new scope
-    export let logger(msg: string) = stderr.write(msg.toString)
-    export let a = 12
+    export logger(msg: string) := stderr.write(msg.toString)
+    export a := 12
     foo()
 }
 ```
@@ -305,7 +412,7 @@ let foo() =  {
 Sourcing
 
 ```
-lazy let env = {
+lazy env := {
     export logger = (msg: string) => stderr.write(msg.toString)
 } 
 
@@ -346,6 +453,7 @@ y := match x = {
 } 
 ```
 
-Open points:
+## Open points
+
 * Using *JavaScript* keywords `let` and `const` or from *Scala* `var` and `val` ? Or `mut` for mutables? Or only operators (`:=`, `:`, `=` and `<-`)
 * Default access modifier `public` or `private` ?
