@@ -89,6 +89,17 @@ String-interpolation (Scala)
 a:= s"Hello $name ${obj.foo()}"
 ```
 
+#### Alias
+
+You can give many "things" an alias name, which get resolved at compile time
+
+```
+x := 12
+y :- x                      // This is an alias for x
+
+y <- 14
+stderr.write(x)             // Prints 14 to the std err
+```
 
 #### Objects
 
@@ -157,6 +168,24 @@ type MyExtendedType = {
     MyType
 }
 ```
+
+Alternative syntax
+
+```
+MyType :- {
+    a: int
+    b: string
+    c: {
+        d: int
+    }
+}
+```
+
+Questions: Is this possible?
+Problems:
+
+* Difference between types and scopes
+    * Must there be a `public` before the members
 
 #### Combining types
 
@@ -287,6 +316,35 @@ foo := (arg1: int) => (arg2: int) => arg1 * arg2
 foo1 := foo(12)
 ```
 
+#### Scope of Parameters
+
+By default parameters have block scope and therefor it uses "call by value"
+
+```
+foo := (x: int) => {}
+
+i := 12
+foo(i)      // Call by value (copy)
+foo(:-i)    // Call by reference Should this be possible?
+```
+
+Better:
+
+```
+shared i := 12
+unique j := 14
+
+foo(i)      // Using shared ownership of i
+foo(j)      // Now foo is the owner of j
+foo(j)      // Error: j is null because you lost its ownership
+```
+
+> Note: Libraries are only possible if either:
+> 1. There is no final library concept. Which means libraries contain bytecode but not machine code
+> 2. All variations of that code get packed in the library
+> 
+> Prefer 1. solution
+
 #### Extensions
 
 ```
@@ -369,7 +427,7 @@ composition :=
     | fuu
 ```
 
-Switch
+Creating a switch:
 
 ```
 // this function has 2 unnamed output pipes
@@ -377,9 +435,9 @@ switch: FooOutputType -> &2 := (input: FooOutputType) => {
     loop {
         i :<< input
         if ...
-            &0 << 12        // Write to first pipe
+            &0 << ...        // Write to first pipe
         else
-            &1 << 34        // Write to second pipe
+            &1 << ...        // Write to second pipe
     }
 }
 
@@ -403,8 +461,10 @@ my_pipe << ...
 Accessing the pipes dynamically
 
 ```
-i := 0
-&$i << ..       // May increase compile time because of complicated range checks
+foo := () => {
+    i := 0
+    &$i << ..       // You have to specify the number of output pipes when using this
+}
 ```
 
 Returning named pipes:
