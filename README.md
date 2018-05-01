@@ -73,10 +73,6 @@ shared b := 12   // Shared ownership (reference counting)
 unique c := 15   // Ownership will be moved
 ```
 
-Note
-> `stack` allocated variables have block lifetime  
-> `heap` allocated variables use reference counting
-
 #### Strings
 
 ```
@@ -147,6 +143,42 @@ obj := {
     public d = "Hello"
 }
 ```
+
+### Builtin Types
+
+* Integral types
+  * `int8`
+  * `int16`
+  * `int32` Using `int` as alias? 
+  * `int64`
+  * `uint8`
+  * `uint16`
+  * `uint32`
+  * `uint64`
+* Floating point types
+  * `float8`
+  * `float16`
+  * `float32` Using `float` as alias? 
+  * `float64`
+
+### Arrays
+
+Are arrays always appendable?
+
+```
+a := int[10]
+shared b := int[n]
+c := int[n]         // Figure out, if this is possible
+``` 
+
+### Containers
+
+Should be implemented as "template" types in **chop** itself.
+
+* String: `string`
+* String Builder: `string_builder` ?
+* Hash map: `map<Type>` 
+* C++ `std::vector` : `vector`
 
 ### Custom Types
 
@@ -566,6 +598,12 @@ y := match x {
 
 tbd
 
+Using `#` as prefix?
+
 ## Open points
 
 * Default access modifier `public` or `private` ?
+  * Suggestion: `private`
+* Abbreviation:
+  * `public` vs `->`
+  * `require x: Type` vs `-> x: Type` or something else?
