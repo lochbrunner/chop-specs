@@ -433,9 +433,18 @@ if x := foo() > 0 {     // x is immutable
 }
 ```
 
+Naming blocks with `:-` get executed directly.
+They can be used for accessing with `break`, `continue` and `goto`.
+
 ```
-outer_loop: for i in [1..10] {
-    inner_loop: for j = [1..i] {
+named_block :- {
+    // So something
+}
+```
+
+```
+outer_loop :- for i in [1..10] {
+    inner_loop :- for j = [1..i] {
         if ... continue inner_loop;
         if ... break outer_loop;
     }
@@ -445,7 +454,7 @@ outer_loop: for i in [1..10] {
 ### Pattern Matching
 
 ```
-y := match x = {
+y := match x {
     case t: Type1 => t.foo()            // Match concrete type
     case s: any & {m: int} => s.m       // `x` contains integer member `m`
     case u: any & {m: 12} => 34         // `x` member `m` has value `12`
@@ -453,7 +462,10 @@ y := match x = {
 } 
 ```
 
+### Meta-Programming
+
+tbd
+
 ## Open points
 
-* Using *JavaScript* keywords `let` and `const` or from *Scala* `var` and `val` ? Or `mut` for mutables? Or only operators (`:=`, `:`, `=` and `<-`)
 * Default access modifier `public` or `private` ?
