@@ -8,7 +8,7 @@
 * Zero runtime cost abstraction
 * Few keywords
 * Allows expressive code
-* No distinction be space ` ` and newline in the code.
+* No distinction be space and newline in the code.
 
 Inspired by
 
@@ -22,28 +22,28 @@ Inspired by
 
 Define immutables:
 
-```
+```code
 x := 1
-``` 
+```
 
 with explicit type
 
-```
+```code
 x := cast<int32>(1)    // or
 x := 1.as<int32>       // or
 x: int32 := 1
-``` 
+```
 
 Define mutable
 
-```
+```code
 x: int      // declaration
 x <- 1      // assignment
 ```
 
 is the same as:
 
-```
+```code
 x: int <- 1     // declaration and definition
 y = 1           // Short notation using type deduction
 ```
@@ -52,7 +52,7 @@ y = 1           // Short notation using type deduction
 
 These lines are equivalent
 
-```
+```code
 stack a := 12
 a: = 12
 a: = {
@@ -67,7 +67,7 @@ a: = {
 
 Kinds of ownership
 
-```
+```code
 stack a := 14    // Ownership by the scope
 shared b := 12   // Shared ownership (reference counting)
 unique c := 15   // Ownership will be moved
@@ -75,13 +75,13 @@ unique c := 15   // Ownership will be moved
 
 #### Strings
 
-```
+```code
 a := "Hello, World"
 ```
 
 String-interpolation (Scala)
 
-```
+```code
 a:= s"Hello $name ${obj.foo()}"
 ```
 
@@ -89,7 +89,7 @@ a:= s"Hello $name ${obj.foo()}"
 
 You can give many "things" an alias name, which get resolved at compile time
 
-```
+```code
 x := 12
 y :- x                      // This is an alias for x
 
@@ -99,8 +99,8 @@ stderr.write(x)             // Prints 14 to the std err
 
 #### Objects
 
-```
-obj := { 
+```code
+obj := {
     public a = 12
     public b = a * 3
 }
@@ -108,8 +108,8 @@ obj := {
 
 of
 
-```
-factory(arg: int) := { 
+```code
+factory(arg: int) := {
     public a = arg
     public b = arg * 3
 }
@@ -120,8 +120,8 @@ obj := factory(12)
 
 Anonymous members
 
-```
-base = { 
+```code
+base = {
     public a = 12
     public b = a * 3
 }
@@ -135,8 +135,8 @@ obj = {
 
 here `obj` is equivalent to
 
-```
-obj := { 
+```code
+obj := {
     public a = 12
     public b = a * 3
     public c = 4
@@ -149,7 +149,7 @@ obj := {
 * Integral types
   * `int8`
   * `int16`
-  * `int32` Using `int` as alias? 
+  * `int32` Using `int` as alias?
   * `int64`
   * `uint8`
   * `uint16`
@@ -158,18 +158,18 @@ obj := {
 * Floating point types
   * `float8`
   * `float16`
-  * `float32` Using `float` as alias? 
+  * `float32` Using `float` as alias?
   * `float64`
 
 ### Arrays
 
 Are arrays always appendable?
 
-```
+```code
 a := int[10]
 shared b := int[n]
 c := int[n]         // Figure out, if this is possible
-``` 
+```
 
 ### Containers
 
@@ -177,12 +177,12 @@ Should be implemented as "template" types in **chop** itself.
 
 * String: `string`
 * String Builder: `string_builder` ?
-* Hash map: `map<Type>` 
+* Hash map: `map<Type>`
 * C++ `std::vector` : `vector`
 
 ### Custom Types
 
-```
+```code
 type MyType = {
     a: int
     b: string
@@ -194,7 +194,7 @@ type MyType = {
 
 Extending types
 
-```
+```code
 type MyExtendedType = {
     d: float32
     MyType
@@ -203,7 +203,7 @@ type MyExtendedType = {
 
 Alternative syntax
 
-```
+```code
 MyType :- {
     a: int
     b: string
@@ -217,13 +217,13 @@ Questions: Is this possible?
 Problems:
 
 * Difference between types and scopes
-    * Must there be a `public` before the members
+  * Must there be a `public` before the members
 
 #### Combining types
 
 Having
 
-```
+```code
 type TypeA = {
     a: int
     c: int
@@ -237,13 +237,13 @@ type TypeB = {
 
 then
 
-```
+```code
 type TypeAandB = TypeA & TypeB
 ```
 
 results in
 
-```
+```code
 type TypeAandB = {
     a: int
     b: int
@@ -251,15 +251,15 @@ type TypeAandB = {
 }
 ```
 
-and 
+and
 
-```
+```code
 type TypeAorB = TypeA | TypeB
 ```
 
 results in
 
-```
+```code
 type TypeAorB = {
     c: int
 }
@@ -267,8 +267,7 @@ type TypeAorB = {
 
 ### Functions
 
-
-```
+```code
 foo := (a: int) => {
     a * a
 }
@@ -276,7 +275,7 @@ foo := (a: int) => {
 
 with explicit type
 
-```
+```code
 foo: int -> int := (a: int) => {
     a * a
 }
@@ -284,7 +283,7 @@ foo: int -> int := (a: int) => {
 
 or
 
-```
+```code
 foo(a: int) := {
     a * a
 }
@@ -292,13 +291,13 @@ foo(a: int) := {
 
 or simply
 
-```
+```code
 foo(a: int) := a * a
 ```
 
 You can create template function when using the `any` type
 
-```
+```code
 foo(a: any) := {
     a * a
 }
@@ -306,7 +305,7 @@ foo(a: any) := {
 
 > Note: If the given type has no definition for the `*` operator, you get a compiler error.
 
-```
+```code
 foo(a: any) := {
     a * a
 }
@@ -317,7 +316,7 @@ t := foo(3)             // Ok
 
 Using a type as anonymous argument:
 
-```
+```code
 type Argument = {a: int}
 foo := (Argument) => {
     a * a
@@ -326,7 +325,7 @@ foo := (Argument) => {
 
 is not the same as
 
-```
+```code
 type Argument = {a: int}
 foo := (arg: Argument) => {
     arg.a * arg.a
@@ -337,13 +336,13 @@ foo := (arg: Argument) => {
 
 #### Higher order functions
 
-```
+```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 ```
 
 #### Argument binding
 
-```
+```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 foo1 := foo(12)
 ```
@@ -352,7 +351,7 @@ foo1 := foo(12)
 
 By default parameters have block scope and therefor it uses "call by value"
 
-```
+```code
 foo := (x: int) => {}
 
 i := 12
@@ -362,7 +361,7 @@ foo(:-i)    // Call by reference Should this be possible?
 
 Better:
 
-```
+```code
 shared i := 12
 unique j := 14
 
@@ -372,14 +371,14 @@ foo(j)      // Error: j is null because you lost its ownership
 ```
 
 > Note: Libraries are only possible if either:
-> 1. There is no final library concept. Which means libraries contain bytecode but not machine code
+> 1. There is no final library concept. Which means libraries contain byte-code but not machine code
 > 2. All variations of that code get packed in the library
-> 
+>
 > Prefer 1. solution
 
 #### Extensions
 
-```
+```code
 MyType.foo = (a: int) => {
     this.a = a
 }
@@ -387,7 +386,7 @@ MyType.foo = (a: int) => {
 
 Assigning extensions to multiple types:
 
-```
+```code
 (MyType1 | MyType2).foo = (a: int) => {
     this.a = a
 }
@@ -401,7 +400,7 @@ Inspired by Unix Pipes
 
 #### Basics: Named pipe
 
-```
+```code
 my_pipe: pipe<int>
 
 foo := () => {
@@ -409,7 +408,7 @@ foo := () => {
     // Do some magic
     // ...
     result
-} 
+}
 
 lazy my_pipe << foo()
 // Nothing happened so far
@@ -438,13 +437,13 @@ fibonacci() := {
 
 Unnamed pipe:
 
-```
+```code
 composition := foo | faa | fuu
 ```
 
 Which is the same as
 
-```
+```code
 composition := (arg1 : ArgType1) => {
     fuu(faa(foo(arg1)))
 }
@@ -452,8 +451,8 @@ composition := (arg1 : ArgType1) => {
 
 Using space is equivalent to newline:
 
-```
-composition := 
+```code
+composition :=
     foo
     | faa
     | fuu
@@ -461,7 +460,7 @@ composition :=
 
 Creating a switch:
 
-```
+```code
 // this function has 2 unnamed output pipes
 switch: FooOutputType -> &2 := (input: FooOutputType) => {
     loop {
@@ -473,11 +472,11 @@ switch: FooOutputType -> &2 := (input: FooOutputType) => {
     }
 }
 
-composition := 
+composition :=
     foo
     | switch
     \ fuu       // Uses output of the first pipe of the switch
-      | faa     // Uses the output of fuu. Note: faa is not "multipiped"
+      | faa     // Uses the output of fuu. Note: faa is not "multi-piped"
     \ fee       // Uses the output of the second pipe of the switch
 ```
 
@@ -485,14 +484,14 @@ Hints:
 
 You can *name* the unnamed pipes
 
-```
+```code
 my_pipe :- &1;
 my_pipe << ...
 ```
 
 Accessing the pipes dynamically
 
-```
+```code
 foo := () => {
     i := 0
     &$i << ..       // You have to specify the number of output pipes when using this
@@ -501,7 +500,7 @@ foo := () => {
 
 Returning named pipes:
 
-```
+```code
 switch: FooOutputType -> &2 := (input: FooOutputType) => {
     loop {
         i :<< input
@@ -512,11 +511,11 @@ switch: FooOutputType -> &2 := (input: FooOutputType) => {
     }
 }
 
-composition := 
+composition :=
     foo
     | switch    // Compiler knows that switch has these two *output* pipes
     \bad sorry
-    \good hurray 
+    \good hurray
 
 ```
 
@@ -525,8 +524,7 @@ composition :=
 * Inspired by unix shell
 * Can be used for *dependency injection*
 
-
-```
+```code
 foo() =  {
     require a: logger: (string) => void
     require a: int
@@ -543,10 +541,10 @@ foo() =  {
 
 Sourcing
 
-```
+```code
 lazy env := {
     export logger = (msg: string) => stderr.write(msg.toString)
-} 
+}
 
 {
     source env  // Getting the logger
@@ -559,7 +557,7 @@ lazy env := {
 
 Declaration inside condition
 
-```
+```code
 if x := foo() > 0 {     // x is immutable
     stderr.write(x);
 }
@@ -568,13 +566,13 @@ if x := foo() > 0 {     // x is immutable
 Naming blocks with `:-` get executed directly.
 They can be used for accessing with `break`, `continue` and `goto`.
 
-```
+```code
 named_block :- {
     // So something
 }
 ```
 
-```
+```code
 outer_loop :- for i in [1..10] {
     inner_loop :- for j = [1..i] {
         if ... continue inner_loop;
@@ -585,20 +583,42 @@ outer_loop :- for i in [1..10] {
 
 ### Pattern Matching
 
-```
+```code
 y := match x {
     case t: Type1 => t.foo()            // Match concrete type
     case s: any & {m: int} => s.m       // `x` contains integer member `m`
     case u: any & {m: 12} => 34         // `x` member `m` has value `12`
     case x > 10 => 34                   // `x` is larger than 10
-} 
+}
 ```
 
 ### Meta-Programming
 
 tbd
 
-Using `#` as prefix?
+Some ideas:
+
+* Using `#` as prefix?
+* Replacing code generators. (e.g. no need for `protoc` anymore)
+* Annotating code with custom qualifiers, which checking (e.g. `realtime` or `license`)
+
+```code
+foo_realtime(x: int) = realtime {
+    x+2
+}
+
+foo_no_realtime(x: int) = {
+    // Doing some stuff like
+    // dynamic memory allocation/deallocation
+    // Calling non realtime functions
+    // Loops with dynamic number cycles
+}
+
+foo() = realtime {
+    foo_no_realtime      // Compiler Error: Function, which calls no realtime
+                         // function, can not be realtime anymore
+}
+```
 
 ## Open points
 
