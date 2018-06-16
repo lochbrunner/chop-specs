@@ -669,6 +669,7 @@ jsonify(obj) = {
 
 > Note: The for loop gets executed by the compiler as far it can.
 > This is similar to C++ template programming, but it acts on an intermediate code representation.
+> When using the prefix `$` you can have access to the same information as the compiler uses generating the target code.
 
 Usage
 
@@ -680,7 +681,7 @@ json := jsonify(obj)        // Not that the compiler will evaluate the template 
 #### Custom Annotations
 
 ```code
-foo_realtime(x: int) = realtime {
+foo_realtime(x: int) = @realtime {
     x+2
 }
 
@@ -691,11 +692,13 @@ foo_no_realtime(x: int) = {
     // Loops with dynamic number cycles
 }
 
-foo() = realtime {
+foo() = @realtime {
     foo_no_realtime      // Compiler Error: Function, which calls no realtime
                          // function, can not be realtime anymore
 }
 ```
+
+Implementation via meta-programming: tbd
 
 ## Notes on compiler implementation
 
@@ -708,8 +711,8 @@ foo() = realtime {
   1. Caching parsers work
   1. Protecting IP for proprietary libraries
 * Allows C++ inspired templating
-* Can be translated to LLVM 
-
+* Can be translated to LLVM-IR
+* No runtime code optimization (this gets done by LLVM backend)
 
 ## Open points
 
