@@ -9,6 +9,7 @@
 * Few keywords
 * Allows expressive code
 * No distinction be space and newline in the code.
+* Using much of the C++ STL where appropriate
 
 Inspired by
 
@@ -82,7 +83,15 @@ a := "Hello, World"
 String-interpolation (Scala)
 
 ```code
-a:= s"Hello $name ${obj.foo()}"
+a:= s"Hello $name ${obj.foo}"
+```
+
+String concatenation
+
+```code
+a := "Hello "
+b := "World!"
+c := a + b
 ```
 
 #### Alias
@@ -263,6 +272,24 @@ results in
 type TypeAorB = {
     c: int
 }
+```
+
+#### Object Destructuring
+
+Using alias for destructuring
+
+```code
+type SampleType = {
+    a: int
+    b: string
+    c: {
+        d: float
+    }
+}
+
+obj: SampleType = ...
+
+{x :- a, y :- c.d} = obj
 ```
 
 ### Functions
@@ -598,9 +625,59 @@ tbd
 
 Some ideas:
 
-* Using `#` as prefix?
+* Using `$` as prefix?
 * Replacing code generators. (e.g. no need for `protoc` anymore)
 * Annotating code with custom qualifiers, which checking (e.g. `realtime` or `license`)
+
+#### Meta programming
+
+Example: Writing a JSON serializer
+
+The type to serialize
+
+```code
+type MyType = {
+    a: int
+    b: string
+    c: {
+        d: int
+        e: float
+    }
+}
+```
+
+The serializer
+
+```code
+jsonify(obj) = {
+    json: = "{\n"
+    type := $obj.type       // With $ you can access compiler information of a variable or any other symbol
+    // type is now a compiler variable (similar to constexpr in C++)
+    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compiletime Note members is hashmap
+        json += s"\"$name\": "
+        json += match member.type {                 // Match gets evaluted during compiletime
+            case int | float: member.value          // toString get optional called
+            case string: s"\"${member.value}\""
+            case object: jsonify(member.value)
+        }
+        if !member_loop.isLast                      // Accessing for loops internal states (only allowed because type.members support random access to its items)
+            json += ",\n"
+    }
+    json + "\n}"
+}
+```
+
+> Note: The for loop gets executed by the compiler as far it can.
+> This is similar to C++ template programming, but it acts on an intermediate code representation.
+
+Usage
+
+```code
+obj: MyType = ...
+json := jsonify(obj)        // Not that the compiler will evaluate the template here. (Type Caching possible)
+```
+
+#### Custom Annotations
 
 ```code
 foo_realtime(x: int) = realtime {
@@ -619,6 +696,20 @@ foo() = realtime {
                          // function, can not be realtime anymore
 }
 ```
+
+## Notes on compiler implementation
+
+### Intermediate Language
+
+* Format:
+  * binary
+  * fast searchable
+* Motivation:
+  1. Caching parsers work
+  1. Protecting IP for proprietary libraries
+* Allows C++ inspired templating
+* Can be translated to LLVM 
+
 
 ## Open points
 
