@@ -4,12 +4,12 @@
 
 * Dynamic memory allocation on the stack (bind to the scope)
 * Static and structural typed
-* Compile time reflection (tbd)
+* Meta programming with ease and language server support
 * Zero runtime cost abstraction
 * Few keywords
 * Allows expressive code
 * No distinction be space and newline in the code.
-* Using much of the C++ STL where appropriate
+* Using much of the C++ STL internally where appropriate
 
 Inspired by
 
@@ -46,7 +46,7 @@ is the same as:
 
 ```code
 x: int <- 1     // declaration and definition
-y = 1           // Short notation using type deduction
+y = 1           // Short notation using type deduction. Note: This notation is still under discussion
 ```
 
 #### Numbers
@@ -55,13 +55,13 @@ These lines are equivalent
 
 ```code
 stack a := 12
-a: = 12
-a: = {
+a := 12
+a := {
     foo(2)  // Doing some computation
     4       // Gets ignored here
     12      // Last expression gets returned
 }
-a: = {
+a := {
     public default 12   // 12 gets returned (= anonym public member)
 }
 ```
@@ -653,7 +653,7 @@ jsonify(obj) = {
     json: = "{\n"
     type := $obj.type       // With $ you can access compiler information of a variable or any other symbol
     // type is now a compiler variable (similar to constexpr in C++)
-    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compiletime Note members is hashmap
+    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compiletime Note "type.members" is hashmap
         json += s"\"$name\": "
         json += match member.type {                 // Match gets evaluted during compiletime
             case int | float: member.value          // toString get optional called
