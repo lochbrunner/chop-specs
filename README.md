@@ -1,5 +1,9 @@
 # Chop Language Specifications
 
+Goal:
+
+> Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
+
 ## Features
 
 * Dynamic memory allocation on the stack (bind to the scope)
@@ -10,6 +14,7 @@
 * Allows expressive code
 * No distinction be space and newline in the code.
 * Using much of the C++ STL internally where appropriate
+* Also suitable for creating proprietary and/or certified libraries
 
 Inspired by
 
@@ -550,6 +555,7 @@ composition :=
 
 * Inspired by unix shell
 * Can be used for *dependency injection*
+* Keyword: `set` 
 
 ```code
 foo() =  {
@@ -560,8 +566,8 @@ foo() =  {
 }
 
 {   // Defining a new scope
-    export logger(msg: string) := stderr.write(msg.toString)
-    export a := 12
+    set logger(msg: string) := stderr.write(msg.toString)
+    set a := 12
     foo()
 }
 ```
@@ -570,7 +576,7 @@ Sourcing
 
 ```code
 lazy env := {
-    export logger = (msg: string) => stderr.write(msg.toString)
+    set logger = (msg: string) => stderr.write(msg.toString)
 }
 
 {
@@ -579,6 +585,8 @@ lazy env := {
 }
 
 ```
+
+> TODO: Can be converged with the `:-` operator ala: replace `lazy env := {...}` with `env :- {...}` ?  
 
 ### Control Statements
 
@@ -618,6 +626,98 @@ y := match x {
     case x > 10 => 34                   // `x` is larger than 10
 }
 ```
+
+### Module Concept
+
+Goal: Merge EcmaScript5 module concept with access-level concept of obects.
+
+The module concept is similar to that of EcmaScript5.
+
+The source files or IL files of each library defines its own module.
+
+You can import other modules either if their are available as source or as IL files with the keyword `import`:
+
+Example: Importing local file *./package/module.chop*
+
+```code
+import ./package/module_x     // The extension is skipped
+```
+
+You can think of that as if the compiler would insert a `{` in the first line and `}` at the last line of the imported file and paste them into the importing file.
+
+This means the imported file gets its own scope named *module_x* here and therefore only the declarations marked as `public` (`internal` see later) can be used here.
+
+Similar to the Unix path convention you can import "global" modules when you leaf the `./` prefix of the module name. Then the compiler tries to find that file at some specific paths.
+
+Note that you can rename imported modules via
+
+```code
+new_module_name :- import old_module_name
+```
+
+#### Creating bundles
+
+Unfortunately it is not convenient to import a bunch of modules only to use several functionalities of on library.
+
+To avoid the author of the library can bundle there functionality via re-imports.
+
+The main_module might look as:
+
+```code
+import ./submodule_a
+import ./submodule_b
+
+
+public submodule_a
+public submodule_b
+```
+
+This can be imported as
+
+```code
+import ./main_module
+
+let x:= main_module.foo_a
+```
+
+You can make them public under a new name
+
+```
+import ./submodule_a
+
+public feature_a := submodule_a
+```
+
+If one module has the name *index.ext* it gets implicit imported when you specify the containing folder in the import statement.
+
+For instance you have the following folder structure in your library:
+
+```text
+my_library
+|- index.ext
+|- submodule_a
+|  |- index.ext
+|  |- blubb.ext
+.
+.
+. 
+```
+
+In the root *index.ext* you can import the "folder" *./sub_module_a* which implicit would import *./sub_module_a/index.ext*.
+
+The client code would import the library via
+
+```code
+import my_library
+```
+
+can have access to all public elements of the whole library.
+
+#### Internal modules
+
+In order to safe IP you can hide internal code with the keyword `internal`.
+
+`internal` declarations are not public from JL files.
 
 ### Meta-Programming
 
@@ -699,6 +799,30 @@ foo() = @realtime {
 ```
 
 Implementation via meta-programming: tbd
+
+#### Injecting compiler custom compiler information into to IL
+
+You can access compiler variables directly with the `$$` prefix.
+
+Library code
+
+```code
+$$vendor = "My Inc"
+```
+
+This variable is not visible to the compiler back-end (e.g. LLVM) but it can be used by the compiler front-end when importing it. In contrast to `$a`.
+
+```code
+import ./mylib
+
+lib_vendor := $$mylib.vendor
+
+```
+> Note `$_.a` is the same as `$a`
+
+> Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.
+
+> TODO: Is is it also possible to archive that with `const` which declares variables which are only visible by the compiler front-end?
 
 ## Notes on compiler implementation
 
