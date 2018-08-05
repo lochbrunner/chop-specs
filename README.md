@@ -158,6 +158,32 @@ obj := {
 }
 ```
 
+### Enums
+
+Enums can either be implemented as integers (C++) or as strings (Typescript).
+
+The representation are always strings
+
+```code
+type MyEnum = "One" | "Two" | "Three"
+```
+
+It is possible to use them for pattern matching (see later).
+
+```code
+
+type MyEnumA = "One" | "Two" | "Three"
+type MyEnumB = "Four" | "Five" | "Six"
+
+x: MyEnumA | MyEnumB
+// assign some stuff to x
+
+y := match x {
+    case a: MyEnumA => fooA(a)
+    case b: MyEnumB => fooB(b)
+}
+```
+
 ### Builtin Types
 
 * Integral types
@@ -278,6 +304,8 @@ type TypeAorB = {
     c: int
 }
 ```
+
+> Note you can not create space for every composed type as value on the stack. The full power of composed type are only available when they are of shared ownership.
 
 #### Object Destructuring
 
@@ -450,6 +478,7 @@ i :<< my_pipe       // Here foo gets called
 
 Using as a generator
 
+```code
 fibonacci() := {
     shared result: pipe<int>    // named pipes should always have `shared` ownership
     i = 0
@@ -464,6 +493,7 @@ fibonacci() := {
     }
     result
 }
+```
 
 #### Pipe compositions
 
@@ -555,7 +585,7 @@ composition :=
 
 * Inspired by unix shell
 * Can be used for *dependency injection*
-* Keyword: `set` 
+* Keyword: `set`
 
 ```code
 foo() =  {
@@ -682,7 +712,7 @@ let x:= main_module.foo_a
 
 You can make them public under a new name
 
-```
+```code
 import ./submodule_a
 
 public feature_a := submodule_a
@@ -697,10 +727,10 @@ my_library
 |- index.ext
 |- submodule_a
 |  |- index.ext
-|  |- blubb.ext
+|  |- any_sub_submodule.ext
 .
 .
-. 
+.
 ```
 
 In the root *index.ext* you can import the "folder" *./sub_module_a* which implicit would import *./sub_module_a/index.ext*.
@@ -813,15 +843,13 @@ $$vendor = "My Inc"
 This variable is not visible to the compiler back-end (e.g. LLVM) but it can be used by the compiler front-end when importing it. In contrast to `$a`.
 
 ```code
-import ./mylib
+import ./my_lib
 
-lib_vendor := $$mylib.vendor
-
+lib_vendor := $$my_lib.vendor
 ```
-> Note `$_.a` is the same as `$a`
 
-> Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.
-
+> Note `$_.a` is the same as `$a`  
+> Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.  
 > TODO: Is is it also possible to archive that with `const` which declares variables which are only visible by the compiler front-end?
 
 ## Notes on compiler implementation
@@ -834,9 +862,9 @@ lib_vendor := $$mylib.vendor
 * Motivation:
   1. Caching parsers work
   1. Protecting IP for proprietary libraries
-* Allows C++ inspired templating
+* Allows C++ inspired templates
 * Can be translated to LLVM-IR
-* No runtime code optimization (this gets done by LLVM backend)
+* No runtime code optimization (this gets done by LLVM back-end)
 
 ## Open points
 
