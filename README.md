@@ -325,6 +325,55 @@ obj: SampleType = ...
 {x :- a, y :- c.d} = obj
 ```
 
+### Dimensional Analysis
+
+Inspired by: https://github.com/nholthaus/units
+
+Defining units as
+
+```code
+unit<u32> Duration { // Supports only u32
+    s
+}
+
+unit Mass {
+    kg
+}
+
+unit Length {
+    m
+}
+
+unit Force {
+    N,
+    kg*m/s/s
+}
+```
+
+The dimension `force` is introduced with units abbreviation `N` which is equal to the previous defined units `kg*m/s/s`.
+They are applied automatic to each numerical primitive.
+Dimensions get computed automatically when using the operators `+`, `-`, `*` and `/`.
+
+```code
+foo := (force: Force<int32>) => {
+    //...
+}
+
+// Calling
+foo(12N)
+
+// or
+let l = 13m
+let m = 3kg
+let t = 3s
+
+foo(m*l/t/t)
+```
+
+Dimensional analysis is performed during compile time.
+
+> Note: Can this feature be introduced using meta programming?
+
 ### Functions
 
 ```code
