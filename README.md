@@ -6,21 +6,31 @@ Goal:
 
 ## Features
 
-* Dynamic memory allocation on the stack (bind to the scope)
+* Dynamic memory allocation on the stack (bind to the scope; Under discussion)
 * Static and structural typed
 * Meta programming with ease and language server support
 * Zero runtime cost abstraction
 * Few keywords
-* Allows expressive code
-* No distinction be space and newline in the code.
+* No distinction of space and newline character in the code.
+* Allows expressive code (minimal boilerplate)
 * Using much of the C++ STL internally where appropriate
 * Also suitable for creating proprietary and/or certified libraries
+* Generating docs out of the code (empowered by meta-programming)
+
+Tools
+
+* Compiler (no need for linter)
+* REPL
+* Formatter
+* Language Server
 
 Inspired by
 
+* C: The syntactical base
 * Go
-* Scala
-* JavaScript (TypeScript)
+* Scala: syntax
+* JavaScript (TypeScript): module system
+* rust: enums, docs (not included now)
 
 ## Examples
 
@@ -104,7 +114,7 @@ c := a + b
 You can give many "things" an alias name, which get resolved at compile time
 
 ```code
-x := 12
+x = 12
 y :- x                      // This is an alias for x
 
 y <- 14
@@ -374,6 +384,10 @@ Dimensional analysis is performed during compile time.
 
 > Note: Can this feature be introduced using meta programming?
 
+Possible solution: Each token which can not be parsed with standard tokenizer get tried to match with registered extension implemented via meta programming.
+
+> Open point: Should this be constrained in order to increase readability of the code?
+
 ### Functions
 
 ```code
@@ -630,6 +644,8 @@ composition :=
 
 ```
 
+> Note: Can this be archived with Monads?
+
 ### Environment Variables
 
 * Inspired by unix shell
@@ -806,7 +822,7 @@ Some ideas:
 
 * Using `$` as prefix?
 * Replacing code generators. (e.g. no need for `protoc` anymore)
-* Annotating code with custom qualifiers, which checking (e.g. `realtime` or `license`)
+* Annotating code with custom qualifiers, which checking (e.g. `realtime` or `license`; or guaranties safety to a norm *ISO26262*)
 
 #### Meta programming
 
@@ -879,7 +895,7 @@ foo() = @realtime {
 
 Implementation via meta-programming: tbd
 
-#### Injecting compiler custom compiler information into to IL
+#### Injecting custom compiler information into to IL
 
 You can access compiler variables directly with the `$$` prefix.
 
