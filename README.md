@@ -30,7 +30,7 @@ Inspired by
 * Go
 * Scala: syntax
 * JavaScript (TypeScript): module system
-* rust: enums, docs (not included now)
+* rust: enums, move, docs (not included now)
 
 ## Examples
 
@@ -63,6 +63,8 @@ is the same as:
 x: int <- 1     // declaration and definition
 y = 1           // Short notation using type deduction. Note: This notation is still under discussion
 ```
+
+> Open Point: Should `<-` be also to be overloaded for custom behavior? For instance sending messages to a queue?
 
 #### Numbers
 
@@ -494,6 +496,7 @@ foo(j)      // Error: j is null because you lost its ownership
 ```
 
 > Note: Libraries are only possible if either:
+>
 > 1. There is no final library concept. Which means libraries contain byte-code but not machine code
 > 2. All variations of that code get packed in the library
 >
@@ -502,7 +505,7 @@ foo(j)      // Error: j is null because you lost its ownership
 #### Extensions
 
 ```code
-MyType.foo = (a: int) => {
+MyType.foo := (a: int) => {
     this.a = a
 }
 ```
@@ -510,12 +513,20 @@ MyType.foo = (a: int) => {
 Assigning extensions to multiple types:
 
 ```code
-(MyType1 | MyType2).foo = (a: int) => {
+(MyType1 | MyType2).foo := (a: int) => {
     this.a = a
 }
 ```
 
 > Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
+
+##### Abstract Extension Definitions
+
+```code
+operator .addTwice := (left, right) => left + right*2
+```
+
+Which can be attached to each type which has `+` operation defined.
 
 ### Piping
 
