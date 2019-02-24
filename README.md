@@ -4,6 +4,8 @@ Goal:
 
 > Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
 
+All features of that language are specified by examples.
+
 ## Features
 
 * Dynamic memory allocation on the stack (bind to the scope; Under discussion)
@@ -64,7 +66,10 @@ x: int <- 1     // declaration and definition
 y = 1           // Short notation using type deduction. Note: This notation is still under discussion
 ```
 
-> Open Point: Should `<-` be also to be overloaded for custom behavior? For instance sending messages to a queue?
+> Open Points:
+>
+> * Should `<-` be also to be overloaded for custom behavior? For instance sending messages to a queue?
+> * Should be move default or copy of a value. Should be copy made explicit ala `a := copy(b)` ?
 
 #### Numbers
 
@@ -170,6 +175,17 @@ obj := {
 }
 ```
 
+##### Open Point on Movement and object construction
+
+```code
+i := 12
+obj := {
+    public a = i
+}
+```
+
+Is `i` then moved into the object and no longer valid?
+
 ### Enums
 
 Enums can either be implemented as integers (C++) or as strings (Typescript).
@@ -196,32 +212,35 @@ y := match x {
 }
 ```
 
+> Note: Consider using the type constraints as values too. Using meta programming.
+
 ### Builtin Types
 
 * Integral types
-  * `int8`
-  * `int16`
-  * `int32` Using `int` as alias?
-  * `int64`
-  * `uint8`
-  * `uint16`
-  * `uint32`
-  * `uint64`
+  * `int8` or `i8`
+  * `int16` or `i16`
+  * `int32` or `i32` Using `int` as alias?
+  * `int64` or `i64`
+  * `uint8` or `u8`
+  * `uint16` or `u16`
+  * `uint32` or `u32`
+  * `uint64`  or `u64`
 * Floating point types
-  * `float8`
-  * `float16`
-  * `float32` Using `float` as alias?
-  * `float64`
+  * `float8` or `f8`
+  * `float16` or `f16`
+  * `float32` or `f32` Using `float` as alias?
+  * `float64` or `f64`
 
 ### Arrays
-
-Are arrays always appendable?
 
 ```code
 a := int[10]
 shared b := int[n]
 c := int[n]         // Figure out, if this is possible
 ```
+
+> Open point:
+> Are arrays always appendable?
 
 ### Containers
 
