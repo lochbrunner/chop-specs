@@ -29,10 +29,10 @@ Tools
 Inspired by
 
 * C: The syntactical base
-* Go
+* rust: syntax
+* Go: syntax and module system
 * Scala: syntax
 * JavaScript (TypeScript): module system
-* rust: enums, move, docs (not included now)
 
 ## Examples
 
@@ -447,6 +447,8 @@ foo(a: any) := {
 }
 ```
 
+> The keyword `any` can be omitted in most situations due this does not provide useful information.
+>
 > Note: If the given type has no definition for the `*` operator, you get a compiler error.
 
 ```code
@@ -546,6 +548,8 @@ operator .addTwice := (left, right) => left + right*2
 ```
 
 Which can be attached to each type which has `+` operation defined.
+
+> Hint: This can be used for creating iterators used by for loops.
 
 ### Piping
 
@@ -780,6 +784,14 @@ Note that you can rename imported modules via
 new_module_name :- import old_module_name
 ```
 
+It is also possible to import modules from public repositories. For instance
+
+```code
+import www.github.com/publisher/package/module_x     // The extension is skipped
+```
+
+Even if the source code is not public, it is also possible to import the IR code of the package without limitations.
+
 #### Creating bundles
 
 Unfortunately it is not convenient to import a bunch of modules only to use several functionalities of on library.
@@ -946,6 +958,14 @@ lib_vendor := $$my_lib.vendor
 > Note `$_.a` is the same as `$a`  
 > Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.  
 > TODO: Is is it also possible to archive that with `const` which declares variables which are only visible by the compiler front-end?
+
+### Code sanitizing
+
+In order to avoid cryptic, verbose and unreadable compiler errors known from some C++ templates, the author of meta-functions should be able to check the arguments and create custom error messages on invalid arguments.
+
+## Developer Experience
+
+* The compiler should detect as much type (and lifetime) information out of the code as possible in order to reduce the amount of annotations written by the developer and make the code more concise.
 
 ## Notes on compiler implementation
 
