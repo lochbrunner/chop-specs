@@ -8,16 +8,16 @@ All features of that language are specified by examples.
 
 ## Features
 
-* Dynamic memory allocation on the stack (bind to the scope; Under discussion)
-* Static and structural typed
+* Static and structural typed (Most type and lifetime annotations can be omitted due to inferring capability of the compiler)
 * Meta programming with ease and language server support
-* Zero runtime cost abstraction
+* Zero runtime cost abstraction (-> No *GC*)
 * Few keywords
-* No distinction of space and newline character in the code.
-* Allows expressive code (minimal boilerplate)
+* Allows expressive code (less boilerplate than *rust*)
 * Using much of the C++ STL internally where appropriate
 * Also suitable for creating proprietary and/or certified libraries
 * Generating docs out of the code (empowered by meta-programming)
+* No distinction of space and newline character in the code.
+* Dynamic memory allocation on the stack (bind to the scope; Under discussion)
 
 Tools
 
@@ -29,7 +29,7 @@ Tools
 Inspired by
 
 * C: The syntactical base
-* rust: syntax
+* rust: move semantic and checkers
 * Go: syntax and module system
 * Scala: syntax
 * JavaScript (TypeScript): module system
@@ -96,6 +96,8 @@ shared b := 12   // Shared ownership (reference counting)
 unique c := 15   // Ownership will be moved
 ```
 
+> Open Point: Should smart pointers be a language feature or a library feature?
+
 #### Strings
 
 ```code
@@ -107,6 +109,36 @@ String-interpolation (Scala)
 ```code
 a:= s"Hello $name ${obj.foo}"
 ```
+
+Gets expanded to
+
+```code
+a:= "Hello " + name.to_string + obj.foo.to_string
+```
+
+Using different formatters
+
+```code
+a:= "Today is ${date|"YYYY/MM/DD"d}"
+```
+
+Where `"YYYY/MM/DD"d` creates a function which formats the given date into a string or object which contains the `to_string` method. This must be registered via:
+
+```code
+operator d := (code: str) => (date: Date) => {
+    // Some code returning the formated date string
+}
+```
+
+or:
+
+```code
+String.d := (code: str) => (date: Date) => {
+    // Some code returning the formated date string
+}
+```
+
+Which defines the method `.d` to Strings.
 
 String concatenation
 
@@ -172,6 +204,18 @@ obj := {
     public b = a * 3
     public c = 4
     public d = "Hello"
+}
+```
+
+#### Special Method: Destructor
+
+In order to specify the behavior when some object lifetime reaches it's end.
+
+```code
+obj := {
+    ~ = () => {
+        // Do some clean up stuff
+    }
 }
 ```
 
@@ -358,7 +402,7 @@ obj: SampleType = ...
 
 ### Dimensional Analysis
 
-Inspired by: https://github.com/nholthaus/units
+Inspired by: [nholthaus/units](https://github.com/nholthaus/units)
 
 Defining units as
 
@@ -550,6 +594,14 @@ operator .addTwice := (left, right) => left + right*2
 Which can be attached to each type which has `+` operation defined.
 
 > Hint: This can be used for creating iterators used by for loops.
+>
+> Open Points
+>
+> * How to namespace Operators?  
+>   Proposal: Operators must be imported (explicitly)  
+>   What about standard arithmetic operators (e.g. `2+3`) ?
+> * How to specify the precedence of the new operator?
+> * How to specify the type (e.g. infix, postfix or prefix) of the new operator?
 
 ### Piping
 
@@ -680,6 +732,10 @@ composition :=
 
 > Note: Can this be archived with Monads?
 
+#### Implementation
+
+> Pipes are defined via ordinary operator definitions
+
 ### Environment Variables
 
 * Inspired by unix shell
@@ -758,7 +814,7 @@ y := match x {
 
 ### Module Concept
 
-Goal: Merge EcmaScript5 module concept with access-level concept of obects.
+Goal: Merge EcmaScript5 module concept with access-level concept of objects.
 
 The module concept is similar to that of EcmaScript5.
 
@@ -801,12 +857,12 @@ To avoid the author of the library can bundle there functionality via re-imports
 The main_module might look as:
 
 ```code
-import ./submodule_a
-import ./submodule_b
+import ./sub_module_a
+import ./sub_module_b
 
 
-public submodule_a
-public submodule_b
+public sub_module_a
+public sub_module_b
 ```
 
 This can be imported as
@@ -820,9 +876,9 @@ let x:= main_module.foo_a
 You can make them public under a new name
 
 ```code
-import ./submodule_a
+import ./sub_module_a
 
-public feature_a := submodule_a
+public feature_a := sub_module_a
 ```
 
 If one module has the name *index.ext* it gets implicit imported when you specify the containing folder in the import statement.
@@ -832,9 +888,9 @@ For instance you have the following folder structure in your library:
 ```text
 my_library
 |- index.ext
-|- submodule_a
+|- sub_module_a
 |  |- index.ext
-|  |- any_sub_submodule.ext
+|  |- any_sub_sub_module.ext
 .
 .
 .
@@ -864,7 +920,7 @@ Some ideas:
 
 * Using `$` as prefix?
 * Replacing code generators. (e.g. no need for `protoc` anymore)
-* Annotating code with custom qualifiers, which checking (e.g. `realtime` or `license`; or guaranties safety to a norm *ISO26262*)
+* Annotating code with custom qualifiers, which checking (e.g. `real-time` or `license`; or guaranties safety to a norm *ISO26262*)
 
 #### Meta programming
 
@@ -890,9 +946,9 @@ jsonify(obj) = {
     json: = "{\n"
     type := $obj.type       // With $ you can access compiler information of a variable or any other symbol
     // type is now a compiler variable (similar to constexpr in C++)
-    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compiletime Note "type.members" is hashmap
+    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compile-time Note "type.members" is hashmap
         json += s"\"$name\": "
-        json += match member.type {                 // Match gets evaluted during compiletime
+        json += match member.type {                 // Match gets evaluated during compile-time
             case int | float: member.value          // toString get optional called
             case string: s"\"${member.value}\""
             case object: jsonify(member.value)
@@ -924,8 +980,8 @@ foo_realtime(x: int) = @realtime {
 
 foo_no_realtime(x: int) = {
     // Doing some stuff like
-    // dynamic memory allocation/deallocation
-    // Calling non realtime functions
+    // dynamic memory allocation/de-allocation
+    // Calling non real-time functions
     // Loops with dynamic number cycles
 }
 
