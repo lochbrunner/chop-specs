@@ -4,6 +4,11 @@ Goal:
 
 > Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
 
+* System language (inspired by Rust)
+* Unifies the syntax of similar use cases.
+* Extendable by the User
+* Using the same language for program, meta-programming and build configuration
+
 All features of that language are specified by examples.
 
 ## Features
@@ -13,11 +18,9 @@ All features of that language are specified by examples.
 * Zero runtime cost abstraction (-> No *GC*)
 * Few keywords
 * Allows expressive code (less boilerplate than *rust*)
-* Using much of the C++ STL internally where appropriate
 * Also suitable for creating proprietary and/or certified libraries
 * Generating docs out of the code (empowered by meta-programming)
-* No distinction of space and newline character in the code.
-* Dynamic memory allocation on the stack (bind to the scope; Under discussion)
+* Research topic: Dynamic memory allocation on the stack (bind to the scope)
 
 Tools
 
@@ -28,17 +31,16 @@ Tools
 
 Inspired by
 
-* C: The syntactical base
-* rust: move semantic and checkers
+* rust: syntax, move semantic and checkers
 * Go: syntax and module system
 * Scala: syntax
-* JavaScript (TypeScript): module system
+* JavaScript (TypeScript): module system, syntax
 
 ## Examples
 
 ### Variables
 
-Define immutables:
+Define and declare a local variable:
 
 ```code
 x := 1
@@ -52,31 +54,46 @@ x := 1.as<int32>       // or
 x: int32 := 1
 ```
 
-Define mutable
+Define a public variable:
 
-```code
-x: int      // declaration
-x <- 1      // assignment
+```
+x :+ 1
 ```
 
-is the same as:
+which can be accessed from outside the block:
 
-```code
-x: int <- 1     // declaration and definition
-y = 1           // Short notation using type deduction. Note: This notation is still under discussion
+```
+a := {b:+12}.b  // a is now 12
 ```
 
-> Open Points:
->
-> * Should `<-` be also to be overloaded for custom behavior? For instance sending messages to a queue?
-> * Should be move default or copy of a value. Should be copy made explicit ala `a := copy(b)` ?
+#### Mutable variables
+
+```code
+mut x := 1      // declaration
+x <- 2          // assignment
+```
+
+> Note: `<-` is just an operator defined for integers. For instance sending messages to a channel.
+> This could be have other behavior for other types.
+
+#### Shadowing
+
+Inspired by rust
+
+```
+a := "12.34"
+a := parse(a)       // Shadows the variable declaration above
+```
+
+#### Ownership, Borrowing and Box
+
+Taken from rust.
 
 #### Numbers
 
 These lines are equivalent
 
 ```code
-stack a := 12
 a := 12
 a := {
     foo(2)  // Doing some computation
@@ -87,16 +104,6 @@ a := {
     public default 12   // 12 gets returned (= anonym public member)
 }
 ```
-
-Kinds of ownership
-
-```code
-stack a := 14    // Ownership by the scope
-shared b := 12   // Shared ownership (reference counting)
-unique c := 15   // Ownership will be moved
-```
-
-> Open Point: Should smart pointers be a language feature or a library feature?
 
 #### Strings
 
@@ -125,7 +132,7 @@ a:= "Today is ${date|"YYYY/MM/DD"d}"
 Where `"YYYY/MM/DD"d` creates a function which formats the given date into a string or object which contains the `to_string` method. This must be registered via:
 
 ```code
-operator d := (code: str) => (date: Date) => {
+postfix d := (code: str) => (date: Date) => {
     // Some code returning the formated date string
 }
 ```
@@ -164,8 +171,8 @@ stderr.write(x)             // Prints 14 to the std err
 
 ```code
 obj := {
-    public a = 12
-    public b = a * 3
+    a :+ 12
+    b :+ a * 3
 }
 ```
 
@@ -173,8 +180,8 @@ of
 
 ```code
 factory(arg: int) := {
-    public a = arg
-    public b = arg * 3
+    a :+ arg
+    b :+ arg * 3
 }
 
 obj := factory(12)
@@ -185,14 +192,14 @@ Anonymous members
 
 ```code
 base = {
-    public a = 12
-    public b = a * 3
+    a :+ 12
+    b :+= a * 3
 }
 
 obj = {
-    public base
-    public c = 4
-    public d = "Hello"
+    ...base
+    c :+ 4
+    d :+ "Hello"
 }
 ```
 
@@ -200,10 +207,10 @@ here `obj` is equivalent to
 
 ```code
 obj := {
-    public a = 12
-    public b = a * 3
-    public c = 4
-    public d = "Hello"
+    a :+ 12
+    b :+ a * 3
+    c :+ 4
+    d :+ "Hello"
 }
 ```
 
@@ -213,7 +220,7 @@ In order to specify the behavior when some object lifetime reaches it's end.
 
 ```code
 obj := {
-    ~ = () => {
+    ~ :+ () => {
         // Do some clean up stuff
     }
 }
@@ -224,7 +231,7 @@ obj := {
 ```code
 i := 12
 obj := {
-    public a = i
+    a :+ i
 }
 ```
 
@@ -279,12 +286,10 @@ y := match x {
 
 ```code
 a := int[10]
-shared b := int[n]
-c := int[n]         // Figure out, if this is possible
+b := int[n]         // Figure out, if this is possible
 ```
 
-> Open point:
-> Are arrays always appendable?
+> Are arrays always extendable?
 
 ### Containers
 
@@ -312,7 +317,7 @@ Extending types
 ```code
 type MyExtendedType = {
     d: float32
-    MyType
+    ...MyType
 }
 ```
 
@@ -331,8 +336,8 @@ MyType :- {
 Questions: Is this possible?
 Problems:
 
-* Difference between types and scopes
-  * Must there be a `public` before the members
+* Difference between types and scopes:
+  * In types everything is public
 
 #### Combining types
 
@@ -382,6 +387,12 @@ type TypeAorB = {
 
 > Note you can not create space for every composed type as value on the stack. The full power of composed type are only available when they are of shared ownership.
 
+#### Constraints on types
+
+```
+type Evens = 2*i with i: int32
+````
+
 #### Object Destructuring
 
 Using alias for destructuring
@@ -396,8 +407,10 @@ type SampleType = {
 }
 
 obj: SampleType = ...
-
-{x :- a, y :- c.d} = obj
+{a} := obj                  // a is moved out of obj
+{a} :- obj                  // a is now a short descriptor for obj.a
+// With renaming
+{x :- a, y :- c.d} :- obj
 ```
 
 ### Dimensional Analysis
@@ -524,6 +537,12 @@ foo := (arg: Argument) => {
 
 > Hint: You can skip the curly bracket if there is only one expression.
 
+#### Generic functions
+
+> Note: By default the functions have generic argument types.
+They get constraint by the compiler identifying their use.
+This means that all constraints must be available in the intermediate language description of the libraries.  
+
 #### Higher order functions
 
 ```code
@@ -544,28 +563,15 @@ By default parameters have block scope and therefor it uses "call by value"
 ```code
 foo := (x: int) => {}
 
+faa := (x: &int) => {}
+
 i := 12
-foo(i)      // Call by value (copy)
-foo(:-i)    // Call by reference Should this be possible?
+j := 13
+foo(i.clone)    // A copy of i gets moved to foo
+foo(i)          // i itself gets moved to foo
+foo(i)          // error: i was moved before
+faa(&j)         // j gets borrowed
 ```
-
-Better:
-
-```code
-shared i := 12
-unique j := 14
-
-foo(i)      // Using shared ownership of i
-foo(j)      // Now foo is the owner of j
-foo(j)      // Error: j is null because you lost its ownership
-```
-
-> Note: Libraries are only possible if either:
->
-> 1. There is no final library concept. Which means libraries contain byte-code but not machine code
-> 2. All variations of that code get packed in the library
->
-> Prefer 1. solution
 
 #### Extensions
 
@@ -585,10 +591,18 @@ Assigning extensions to multiple types:
 
 > Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
 
+```code
+MyType.foo <- (a:int) => {}     // error <- to undeclared foo is not allowed
+```
+
+Virtual functions are only allowed to instances and not to types.
+
+
+
 ##### Abstract Extension Definitions
 
 ```code
-operator .addTwice := (left, right) => left + right*2
+infix .addTwice := (left, right) => left + right*2
 ```
 
 Which can be attached to each type which has `+` operation defined.
@@ -606,6 +620,8 @@ Which can be attached to each type which has `+` operation defined.
 ### Piping
 
 Inspired by Unix Pipes
+
+> Note: Many open points here!
 
 #### Basics: Named pipe
 
@@ -801,6 +817,13 @@ outer_loop :- for i in [1..10] {
 }
 ```
 
+**Consequence**
+
+```code
+a :- if x :+ foo() > 0 {}
+x = a.x                     // x has now the value of foo()
+```
+
 ### Pattern Matching
 
 ```code
@@ -808,7 +831,7 @@ y := match x {
     case t: Type1 => t.foo()            // Match concrete type
     case s: any & {m: int} => s.m       // `x` contains integer member `m`
     case u: any & {m: 12} => 34         // `x` member `m` has value `12`
-    case x > 10 => 34                   // `x` is larger than 10
+    case x > 10 => 36                   // `x` is larger than 10
 }
 ```
 
@@ -912,15 +935,18 @@ In order to safe IP you can hide internal code with the keyword `internal`.
 
 `internal` declarations are not public from JL files.
 
+> TODO: It might be better that everything must be marked explicit as public.
+
 ### Meta-Programming
 
 tbd
 
 Some ideas:
 
-* Using `$` as prefix?
+* Using `$` as prefix? Pro: the `$` Symbol means always go one meta-layer deeper: `a := "env: $$$USER"` is the shell environment variable of the compiler process placed in a string of the compiled program.
 * Replacing code generators. (e.g. no need for `protoc` anymore)
 * Annotating code with custom qualifiers, which checking (e.g. `real-time` or `license`; or guaranties safety to a norm *ISO26262*)
+* It should also be possible to read and write files during compilation with the standard File API. Use Cases: Generating schemas and documents during compiling out of the code. 
 
 #### Meta programming
 
@@ -946,12 +972,12 @@ jsonify(obj) = {
     json: = "{\n"
     type := $obj.type       // With $ you can access compiler information of a variable or any other symbol
     // type is now a compiler variable (similar to constexpr in C++)
-    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compile-time Note "type.members" is hashmap
+    member_loop :- $for {name :- key} in type.members {     // Done in compile-time Note "type.members" is hashmap
         json += s"\"$name\": "
         json += match member.type {                 // Match gets evaluated during compile-time
-            case int | float: member.value          // toString get optional called
-            case string: s"\"${member.value}\""
-            case object: jsonify(member.value)
+            case int | float: $obj[name]            // toString get optional called
+            case string: s"\"${$obj[name]}\""
+            case object: jsonify($obj[name])
         }
         if !member_loop.isLast                      // Accessing for loops internal states (only allowed because type.members support random access to its items)
             json += ",\n"
