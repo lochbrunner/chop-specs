@@ -66,7 +66,7 @@ which can be accessed from outside the block:
 a := {b:+12}.b  // a is now 12
 ```
 
-#### Mutable variables
+### Mutable variables
 
 ```code
 mut x := 1      // declaration
@@ -76,7 +76,7 @@ x <- 2          // assignment
 > Note: `<-` is just an operator defined for integers. For instance sending messages to a channel.
 > This could be have other behavior for other types.
 
-#### Shadowing
+### Shadowing
 
 Inspired by rust
 
@@ -85,11 +85,11 @@ a := "12.34"
 a := parse(a)       // Shadows the variable declaration above
 ```
 
-#### Ownership, Borrowing and Box
+### Ownership, Borrowing and Box
 
 Taken from rust.
 
-#### Numbers
+### Numbers
 
 These lines are equivalent
 
@@ -98,14 +98,11 @@ a := 12
 a := {
     foo(2)  // Doing some computation
     4       // Gets ignored here
-    12      // Last expression gets returned
-}
-a := {
-    public default 12   // 12 gets returned (= anonym public member)
+    12      // Last expression gets returned as a default
 }
 ```
 
-#### Strings
+### Strings
 
 ```code
 a := "Hello, World"
@@ -155,7 +152,7 @@ b := "World!"
 c := a + b
 ```
 
-#### Alias
+### Alias
 
 You can give many "things" an alias name, which get resolved at compile time
 
@@ -167,7 +164,7 @@ y <- 14
 stderr.write(x)             // Prints 14 to the std err
 ```
 
-#### Objects
+### Objects
 
 ```code
 obj := {
@@ -214,7 +211,7 @@ obj := {
 }
 ```
 
-#### Special Method: Destructor
+### Special Method: Destructor
 
 In order to specify the behavior when some object lifetime reaches it's end.
 
@@ -226,7 +223,7 @@ obj := {
 }
 ```
 
-##### Open Point on Movement and object construction
+#### Open Point on Movement and object construction
 
 ```code
 i := 12
@@ -237,7 +234,7 @@ obj := {
 
 Is `i` then moved into the object and no longer valid?
 
-### Enums
+## Enums
 
 Enums can either be implemented as integers (C++) or as strings (Typescript).
 
@@ -265,7 +262,7 @@ y := match x {
 
 > Note: Consider using the type constraints as values too. Using meta programming.
 
-### Builtin Types
+## Builtin Types
 
 * Integral types
   * `int8` or `i8`
@@ -282,7 +279,7 @@ y := match x {
   * `float32` or `f32` Using `float` as alias?
   * `float64` or `f64`
 
-### Arrays
+## Arrays
 
 ```code
 a := int[10]
@@ -291,7 +288,7 @@ b := int[n]         // Figure out, if this is possible
 
 > Are arrays always extendable?
 
-### Containers
+## Containers
 
 Should be implemented as "template" types in **chop** itself.
 
@@ -300,7 +297,7 @@ Should be implemented as "template" types in **chop** itself.
 * Hash map: `map<Type>`
 * C++ `std::vector` : `vector`
 
-### Custom Types
+## Custom Types
 
 ```code
 type MyType = {
@@ -339,7 +336,7 @@ Problems:
 * Difference between types and scopes:
   * In types everything is public
 
-#### Combining types
+### Combining types
 
 Having
 
@@ -387,13 +384,13 @@ type TypeAorB = {
 
 > Note you can not create space for every composed type as value on the stack. The full power of composed type are only available when they are of shared ownership.
 
-#### Constraints on types
+### Constraints on types
 
 ```
 type Evens = 2*i with i: int32
-````
+```
 
-#### Object Destructuring
+### Object Destructuring
 
 Using alias for destructuring
 
@@ -413,7 +410,7 @@ obj: SampleType = ...
 {x :- a, y :- c.d} :- obj
 ```
 
-### Dimensional Analysis
+## Dimensional Analysis
 
 Inspired by: [nholthaus/units](https://github.com/nholthaus/units)
 
@@ -466,7 +463,7 @@ Possible solution: Each token which can not be parsed with standard tokenizer ge
 
 > Open point: Should this be constrained in order to increase readability of the code?
 
-### Functions
+## Functions
 
 ```code
 foo := (a: int) => {
@@ -537,26 +534,26 @@ foo := (arg: Argument) => {
 
 > Hint: You can skip the curly bracket if there is only one expression.
 
-#### Generic functions
+### Generic functions
 
 > Note: By default the functions have generic argument types.
 They get constraint by the compiler identifying their use.
 This means that all constraints must be available in the intermediate language description of the libraries.  
 
-#### Higher order functions
+### Higher order functions
 
 ```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 ```
 
-#### Argument binding
+### Argument binding
 
 ```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 foo1 := foo(12)
 ```
 
-#### Scope of Parameters
+### Scope of Parameters
 
 By default parameters have block scope and therefor it uses "call by value"
 
@@ -573,7 +570,7 @@ foo(i)          // error: i was moved before
 faa(&j)         // j gets borrowed
 ```
 
-#### Extensions
+### Extensions
 
 ```code
 MyType.foo := (a: int) => {
@@ -599,7 +596,7 @@ Virtual functions are only allowed to instances and not to types.
 
 
 
-##### Abstract Extension Definitions
+#### Abstract Extension Definitions
 
 ```code
 infix .addTwice := (left, right) => left + right*2
@@ -617,13 +614,13 @@ Which can be attached to each type which has `+` operation defined.
 > * How to specify the precedence of the new operator?
 > * How to specify the type (e.g. infix, postfix or prefix) of the new operator?
 
-### Piping
+## Piping
 
 Inspired by Unix Pipes
 
 > Note: Many open points here!
 
-#### Basics: Named pipe
+### Basics: Named pipe
 
 ```code
 my_pipe: pipe<int>
@@ -660,7 +657,7 @@ fibonacci() := {
 }
 ```
 
-#### Pipe compositions
+### Pipe compositions
 
 Unnamed pipe:
 
@@ -748,18 +745,18 @@ composition :=
 
 > Note: Can this be archived with Monads?
 
-#### Implementation
+### Implementation
 
 > Pipes are defined via ordinary operator definitions
 
-### Environment Variables
+## Environment Variables
 
 * Inspired by unix shell
 * Can be used for *dependency injection*
-* Keyword: `set`
+* Keywords: `set` and `require`
 
 ```code
-foo() =  {
+foo(x) =  {
     require a: logger: (string) => void
     require a: int
     logger("Entering foo")
@@ -769,9 +766,11 @@ foo() =  {
 {   // Defining a new scope
     set logger(msg: string) := stderr.write(msg.toString)
     set a := 12
-    foo()
+    foo(12);
 }
 ```
+
+> TODO: Using alternative syntax `:>` and `:<` ?
 
 Sourcing
 
@@ -789,7 +788,7 @@ lazy env := {
 
 > TODO: Can be converged with the `:-` operator ala: replace `lazy env := {...}` with `env :- {...}` ?  
 
-### Control Statements
+## Control Statements
 
 Declaration inside condition
 
@@ -824,7 +823,7 @@ a :- if x :+ foo() > 0 {}
 x = a.x                     // x has now the value of foo()
 ```
 
-### Pattern Matching
+## Pattern Matching
 
 ```code
 y := match x {
@@ -835,7 +834,7 @@ y := match x {
 }
 ```
 
-### Module Concept
+## Module Concept
 
 Goal: Merge EcmaScript5 module concept with access-level concept of objects.
 
@@ -843,14 +842,15 @@ The module concept is similar to that of EcmaScript5.
 
 The source files or IL files of each library defines its own module.
 
-You can import other modules either if their are available as source or as IL files with the keyword `import`:
+You can import other modules either if their are available as source or as IL files with the function `import`:
 
 Example: Importing local file *./package/module.chop*
 
 ```code
-import ./package/module_x     // The extension is skipped
+module_x :- import ./package/module_x     // The extension is skipped
 ```
 
+`import` does not need be implemented in the compiler itself. It is implemented in a default imported module using meta-programming.
 You can think of that as if the compiler would insert a `{` in the first line and `}` at the last line of the imported file and paste them into the importing file.
 
 This means the imported file gets its own scope named *module_x* here and therefore only the declarations marked as `public` (`internal` see later) can be used here.
@@ -866,12 +866,12 @@ new_module_name :- import old_module_name
 It is also possible to import modules from public repositories. For instance
 
 ```code
-import www.github.com/publisher/package/module_x     // The extension is skipped
+module_x :- import www.github.com/publisher/package/module_x     // The extension is skipped
 ```
 
 Even if the source code is not public, it is also possible to import the IR code of the package without limitations.
 
-#### Creating bundles
+### Creating bundles
 
 Unfortunately it is not convenient to import a bunch of modules only to use several functionalities of on library.
 
@@ -880,12 +880,8 @@ To avoid the author of the library can bundle there functionality via re-imports
 The main_module might look as:
 
 ```code
-import ./sub_module_a
-import ./sub_module_b
-
-
-public sub_module_a
-public sub_module_b
+sub_module_a :+ import ./sub_module_a
+sub_module_b :+ import ./sub_module_b
 ```
 
 This can be imported as
@@ -929,7 +925,7 @@ import my_library
 
 can have access to all public elements of the whole library.
 
-#### Internal modules
+### Internal modules
 
 In order to safe IP you can hide internal code with the keyword `internal`.
 
@@ -937,7 +933,7 @@ In order to safe IP you can hide internal code with the keyword `internal`.
 
 > TODO: It might be better that everything must be marked explicit as public.
 
-### Meta-Programming
+## Meta-Programming
 
 tbd
 
@@ -948,7 +944,7 @@ Some ideas:
 * Annotating code with custom qualifiers, which checking (e.g. `real-time` or `license`; or guaranties safety to a norm *ISO26262*)
 * It should also be possible to read and write files during compilation with the standard File API. Use Cases: Generating schemas and documents during compiling out of the code. 
 
-#### Meta programming
+### Meta programming
 
 Example: Writing a JSON serializer
 
@@ -997,7 +993,7 @@ obj: MyType = ...
 json := jsonify(obj)        // Not that the compiler will evaluate the template here. (Type Caching possible)
 ```
 
-#### Custom Annotations
+### Custom Annotations
 
 ```code
 foo_realtime(x: int) = @realtime {
@@ -1019,7 +1015,9 @@ foo() = @realtime {
 
 Implementation via meta-programming: tbd
 
-#### Injecting custom compiler information into to IL
+TODO: Security
+
+### Injecting custom compiler information into to IL
 
 You can access compiler variables directly with the `$$` prefix.
 
@@ -1037,17 +1035,89 @@ import ./my_lib
 lib_vendor := $$my_lib.vendor
 ```
 
-> Note `$_.a` is the same as `$a`  
+> Note `$_["a"]` is the same as `$a`  
 > Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.  
 > TODO: Is is it also possible to archive that with `const` which declares variables which are only visible by the compiler front-end?
 
-### Code sanitizing
+## Code sanitizing
 
 In order to avoid cryptic, verbose and unreadable compiler errors known from some C++ templates, the author of meta-functions should be able to check the arguments and create custom error messages on invalid arguments.
 
 ## Developer Experience
 
 * The compiler should detect as much type (and lifetime) information out of the code as possible in order to reduce the amount of annotations written by the developer and make the code more concise.
+
+## Use Cases
+
+### Objects of different type in a vector
+
+```c++
+class Base{
+ public:
+  virtual foo() = 0; 
+};
+
+class A : public Base{
+ public:
+  foo() override { /* ... */};
+ private:
+  int a;
+};
+
+class B : public Base{
+ public:
+  foo() override { /* ... */};
+ private:
+  int b,c;
+};
+
+int main(int, char**) {
+    std::vector<Base*> v;
+    v.push_back(new A());
+    v.push_back(new B());
+
+    for(auto item : v) {
+        item->foo();
+    }
+    return 0;
+}
+```
+
+```code
+type Base {
+    foo : () => void;
+}
+
+create_a := () => {
+    a :+ ...
+    foo :+ () => ...
+}
+
+create_b := () => {
+    b :+ ...
+    c :+ ...
+    foo :+ () => ...
+}
+
+create_c := () => {
+    fii :+ () => ...
+}
+
+postfix .faa := (obj) => obj.foo  // Compiler knows that obj must have member foo
+
+v := Vector<Box<Base>>::new()
+
+v.push(Box.new(create_a))      // Compiler aligns memory layout to Base here
+v.push(Box.new(create_b))      // Compiler aligns memory layout to Base here
+v.push(Box.new(create_c))      // error: member foo is missing
+
+create_c.faa                    // error: member foo is missing
+
+for item in v.iter {
+    item.unwrap.foo             // Brackets () are optional
+    item.unwrap.faa
+}
+```
 
 ## Notes on compiler implementation
 
@@ -1058,8 +1128,8 @@ In order to avoid cryptic, verbose and unreadable compiler errors known from som
   * fast searchable
 * Motivation:
   1. Caching parsers work
+  1. Storing function's signature with predicates
   1. Protecting IP for proprietary libraries
-* Allows C++ inspired templates
 * Can be translated to LLVM-IR
 * No runtime code optimization (this gets done by LLVM back-end)
 
