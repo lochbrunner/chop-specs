@@ -4,6 +4,10 @@ Goal:
 
 > Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
 
+* System language (inspired by Rust)
+* Powerful but simple language: Unifies the syntax of similar use cases to be consistent with minimal exceptions.
+* Extendable by the User: Using the same language for program, meta-programming and build configuration
+
 All features of that language are specified by examples.
 
 ## Features
@@ -13,11 +17,9 @@ All features of that language are specified by examples.
 * Zero runtime cost abstraction (-> No *GC*)
 * Few keywords
 * Allows expressive code (less boilerplate than *rust*)
-* Using much of the C++ STL internally where appropriate
-* Also suitable for creating proprietary and/or certified libraries
+* Also suitable for creating proprietary and/or certified libraries (using secret store)
 * Generating docs out of the code (empowered by meta-programming)
-* No distinction of space and newline character in the code.
-* Dynamic memory allocation on the stack (bind to the scope; Under discussion)
+* Research topic: Dynamic memory allocation on the stack (bind to the scope)
 
 Tools
 
@@ -32,13 +34,13 @@ Inspired by
 * rust: move semantic, borrowing and lifetime
 * Go: syntax and module system
 * Scala: syntax
-* JavaScript (TypeScript): module system
+* JavaScript (TypeScript): module system, syntax
 
 ## Examples
 
 ### Variables
 
-Define immutables:
+Define and declare a local variable:
 
 ```code
 x := 1
@@ -52,53 +54,55 @@ x := 1.as<int32>       // or
 x: int32 := 1
 ```
 
-Define mutable
+Define a public variable:
 
-```code
-x: int      // declaration
-x <- 1      // assignment
+```
+x :+ 1
 ```
 
-is the same as:
+which can be accessed from outside the block:
 
-```code
-x: int <- 1     // declaration and definition
-y = 1           // Short notation using type deduction. Note: This notation is still under discussion
+```
+a := {b:+12}.b  // a is now 12
 ```
 
-> Open Points:
->
-> * Should `<-` be also to be overloaded for custom behavior? For instance sending messages to a queue?
-> * Should be move default or copy of a value. Should be copy made explicit ala `a := copy(b)` ?
+### Mutable variables
 
-#### Numbers
+```code
+mut x := 1      // declaration
+x <- 2          // assignment
+```
+
+> Note: `<-` is just an operator defined for integers. For instance sending messages to a channel.
+> This could be have other behavior for other types.
+
+### Shadowing
+
+Inspired by rust
+
+```
+a := "12.34"
+a := parse(a)       // Shadows the variable declaration above
+```
+
+### Ownership, Borrowing and Box
+
+Taken from rust.
+
+### Numbers
 
 These lines are equivalent
 
 ```code
-stack a := 12
 a := 12
 a := {
     foo(2)  // Doing some computation
     4       // Gets ignored here
-    12      // Last expression gets returned
-}
-a := {
-    public default 12   // 12 gets returned (= anonym public member)
+    12      // Last expression gets returned as a default
 }
 ```
 
-Kinds of ownership
-
-```code
-stack a := 14    // Ownership by the scope
-shared b := 12   // Shared ownership (reference counting)
-unique c := 15   // Ownership will be moved
-```
-
-> Open Point: Should smart pointers be a language feature or a library feature?
-
-#### Strings
+### Strings
 
 ```code
 a := "Hello, World"
@@ -125,7 +129,7 @@ a:= "Today is ${date|"YYYY/MM/DD"d}"
 Where `"YYYY/MM/DD"d` creates a function which formats the given date into a string or object which contains the `to_string` method. This must be registered via:
 
 ```code
-operator d := (code: str) => (date: Date) => {
+postfix d := (code: str) => (date: Date) => {
     // Some code returning the formated date string
 }
 ```
@@ -148,7 +152,7 @@ b := "World!"
 c := a + b
 ```
 
-#### Alias
+### Alias
 
 You can give many "things" an alias name, which get resolved at compile time
 
@@ -160,12 +164,12 @@ y <- 14
 stderr.write(x)             // Prints 14 to the std err
 ```
 
-#### Objects
+### Objects
 
 ```code
 obj := {
-    public a = 12
-    public b = a * 3
+    a :+ 12
+    b :+ a * 3
 }
 ```
 
@@ -173,8 +177,8 @@ of
 
 ```code
 factory(arg: int) := {
-    public a = arg
-    public b = arg * 3
+    a :+ arg
+    b :+ arg * 3
 }
 
 obj := factory(12)
@@ -185,14 +189,14 @@ Anonymous members
 
 ```code
 base = {
-    public a = 12
-    public b = a * 3
+    a :+ 12
+    b :+= a * 3
 }
 
 obj = {
-    public base
-    public c = 4
-    public d = "Hello"
+    ...base
+    c :+ 4
+    d :+ "Hello"
 }
 ```
 
@@ -200,37 +204,37 @@ here `obj` is equivalent to
 
 ```code
 obj := {
-    public a = 12
-    public b = a * 3
-    public c = 4
-    public d = "Hello"
+    a :+ 12
+    b :+ a * 3
+    c :+ 4
+    d :+ "Hello"
 }
 ```
 
-#### Special Method: Destructor
+### Special Method: Destructor
 
 In order to specify the behavior when some object lifetime reaches it's end.
 
 ```code
 obj := {
-    ~ = () => {
+    ~ :+ () => {
         // Do some clean up stuff
     }
 }
 ```
 
-##### Open Point on Movement and object construction
+#### Open Point on Movement and object construction
 
 ```code
 i := 12
 obj := {
-    public a = i
+    a :+ i
 }
 ```
 
 Is `i` then moved into the object and no longer valid?
 
-### Enums
+## Enums
 
 Enums can either be implemented as integers (C++) or as strings (Typescript).
 
@@ -258,7 +262,7 @@ y := match x {
 
 > Note: Consider using the type constraints as values too. Using meta programming.
 
-### Builtin Types
+## Builtin Types
 
 * Integral types
   * `int8` or `i8`
@@ -275,18 +279,16 @@ y := match x {
   * `float32` or `f32` Using `float` as alias?
   * `float64` or `f64`
 
-### Arrays
+## Arrays
 
 ```code
 a := int[10]
-shared b := int[n]
-c := int[n]         // Figure out, if this is possible
+b := int[n]         // Figure out, if this is possible
 ```
 
-> Open point:
-> Are arrays always appendable?
+> Are arrays always extendable?
 
-### Containers
+## Containers
 
 Should be implemented as "template" types in **chop** itself.
 
@@ -295,7 +297,7 @@ Should be implemented as "template" types in **chop** itself.
 * Hash map: `map<Type>`
 * C++ `std::vector` : `vector`
 
-### Custom Types
+## Custom Types
 
 ```code
 type MyType = {
@@ -312,7 +314,7 @@ Extending types
 ```code
 type MyExtendedType = {
     d: float32
-    MyType
+    ...MyType
 }
 ```
 
@@ -331,10 +333,10 @@ MyType :- {
 Questions: Is this possible?
 Problems:
 
-* Difference between types and scopes
-  * Must there be a `public` before the members
+* Difference between types and scopes:
+  * In types everything is public
 
-#### Combining types
+### Combining types
 
 Having
 
@@ -382,7 +384,13 @@ type TypeAorB = {
 
 > Note you can not create space for every composed type as value on the stack. The full power of composed type are only available when they are of shared ownership.
 
-#### Object Destructuring
+### Constraints on types
+
+```
+type Evens = 2*i with i: int32
+```
+
+### Object Destructuring
 
 Using alias for destructuring
 
@@ -396,11 +404,13 @@ type SampleType = {
 }
 
 obj: SampleType = ...
-
-{x :- a, y :- c.d} = obj
+{a} := obj                  // a is moved out of obj
+{a} :- obj                  // a is now a short descriptor for obj.a
+// With renaming
+{x :- a, y :- c.d} :- obj
 ```
 
-### Dimensional Analysis
+## Dimensional Analysis
 
 Inspired by: [nholthaus/units](https://github.com/nholthaus/units)
 
@@ -453,7 +463,7 @@ Possible solution: Each token which can not be parsed with standard tokenizer ge
 
 > Open point: Should this be constrained in order to increase readability of the code?
 
-### Functions
+## Functions
 
 ```code
 foo := (a: int) => {
@@ -524,9 +534,9 @@ foo := (arg: Argument) => {
 
 > Hint: You can skip the curly bracket if there is only one expression.
 
-#### Syntactical Sugar
+### Syntactical Sugar
 
-##### Block as argument
+#### Block as argument
 
 > Under discussion
 
@@ -539,7 +549,7 @@ do_twice(code: Body) := {
 
 Possible use case implementing of *defer*.
 
-##### Leaving round brackets
+#### Leaving round brackets
 
 Similar to Groovy
 
@@ -555,50 +565,43 @@ print := (text) => {
 print "Hello, World!"
 ```
 
-#### Higher order functions
+### Generic functions
+
+> Note: By default the functions have generic argument types.
+They get constraint by the compiler identifying their use.
+This means that all constraints must be available in the intermediate language description of the libraries.  
+
+### Higher order functions
 
 ```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 ```
 
-#### Argument binding
+### Argument binding
 
 ```code
 foo := (arg1: int) => (arg2: int) => arg1 * arg2
 foo1 := foo(12)
 ```
 
-#### Scope of Parameters
+### Scope of Parameters
 
 By default parameters have block scope and therefor it uses "call by value"
 
 ```code
 foo := (x: int) => {}
 
+faa := (x: &int) => {}
+
 i := 12
-foo(i)      // Call by value (copy)
-foo(:-i)    // Call by reference Should this be possible?
+j := 13
+foo(i.clone)    // A copy of i gets moved to foo
+foo(i)          // i itself gets moved to foo
+foo(i)          // error: i was moved before
+faa(&j)         // j gets borrowed
 ```
 
-Better:
-
-```code
-shared i := 12
-unique j := 14
-
-foo(i)      // Using shared ownership of i
-foo(j)      // Now foo is the owner of j
-foo(j)      // Error: j is null because you lost its ownership
-```
-
-> Note: Libraries are only possible if either:
->
-> 1. There is no final library concept. Which means libraries contain byte-code but not machine code
-> 2. All variations of that code get packed in the library
->
-> Prefer 1. solution
-
-#### Extensions
+### Extensions
 
 ```code
 MyType.foo := (a: int) => {
@@ -616,32 +619,43 @@ Assigning extensions to multiple types:
 
 > Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
 
-##### Abstract Extension Definitions
+```code
+MyType.foo <- (a:int) => {}     // error <- to undeclared foo is not allowed
+```
+
+Virtual functions are only allowed to instances and not to types.
+
+
+
+### Operators
+
+
+> type `#` precedence operator-name `:=` or `:+` `(` argument(s) `)` `=>` definition.
+
+With
+ * **type** is one of `infix`,  `postfix` or `prefix`
+ * **precedence** specifies the order of evaluation compared to other operators. Must be `SUM`, `PRODUCT` or `EXPONENTIAL`. With a leading `<` or `>` you can specify the precedence one lower or higher than the specified one.
+
+Example:
 
 ```code
-operator .addTwice := (left, right) => left + right*2
+infix#SUM + := (left, right) => left.unwrap + right.unwrap
 ```
 
 Which can be attached to each type which has `+` operation defined.
 
 > Hint: This can be used for creating iterators used by for loops.
->
-> Open Points
->
-> * How to namespace Operators?  
->   Proposal: Operators must be imported (explicitly)  
->   What about standard arithmetic operators (e.g. `2+3`) ?
-> * How to specify the precedence of the new operator?
-> * How to specify the type (e.g. infix, postfix or prefix) of the new operator?
 
-### Piping
+## Piping
 
 Inspired by Unix Pipes
 
-#### Basics: Named pipe
+**Needs refinement**
+
+### Channels
 
 ```code
-my_pipe: pipe<int>
+my_channel: channel<int>
 
 foo := () => {
     result: int;
@@ -650,32 +664,40 @@ foo := () => {
     result
 }
 
-lazy my_pipe << foo()
+lazy my_channel << foo()
 // Nothing happened so far
 
-i :<< my_pipe       // Here foo gets called
+i :<< my_channel       // Here foo gets called
 ```
 
 Using as a generator
 
 ```code
-fibonacci() := {
-    shared result: pipe<int>    // named pipes should always have `shared` ownership
+fibonacci := () => {
+    {receiver, sender} := channel<int>::new
     i = 0
     j = 1
 
-    // The lazy loop gets only evaluated when the someone reads from the pipe
+    // The lazy loop gets only evaluated when the someone reads from the channel
     lazy loop {
         t := i + j
         i <- j
         j <- t
-        result << t
+        sender << t                 // This line triggers the lazy loop
     }
-    result
+    receiver
+}
+
+for value in fibonacci.iter.take(5) {
+    stderr.print(value)
 }
 ```
 
-#### Pipe compositions
+Or is it better to use `yield return` ?
+
+Prints the first five Fibonacci numbers to the standard error.
+
+### Pipe compositions
 
 Unnamed pipe:
 
@@ -763,18 +785,18 @@ composition :=
 
 > Note: Can this be archived with Monads?
 
-#### Implementation
+### Implementation
 
 > Pipes are defined via ordinary operator definitions
 
-### Environment Variables
+## Environment Variables
 
 * Inspired by unix shell
 * Can be used for *dependency injection*
-* Keyword: `set`
+* Keywords: `set` and `require`
 
 ```code
-foo() =  {
+foo(x) =  {
     require a: logger: (string) => void
     require a: int
     logger("Entering foo")
@@ -784,9 +806,11 @@ foo() =  {
 {   // Defining a new scope
     set logger(msg: string) := stderr.write(msg.toString)
     set a := 12
-    foo()
+    foo(12);
 }
 ```
+
+> TODO: Using alternative syntax `:>` and `:<` ?
 
 Sourcing
 
@@ -804,7 +828,7 @@ lazy env := {
 
 > TODO: Can be converged with the `:-` operator ala: replace `lazy env := {...}` with `env :- {...}` ?  
 
-### Control Statements
+## Control Statements
 
 Declaration inside condition
 
@@ -832,18 +856,25 @@ outer_loop :- for i in [1..10] {
 }
 ```
 
-### Pattern Matching
+**Consequence**
+
+```code
+a :- if x :+ foo() > 0 {}
+x = a.x                     // x has now the value of foo()
+```
+
+## Pattern Matching
 
 ```code
 y := match x {
     case t: Type1 => t.foo()            // Match concrete type
     case s: any & {m: int} => s.m       // `x` contains integer member `m`
     case u: any & {m: 12} => 34         // `x` member `m` has value `12`
-    case x > 10 => 34                   // `x` is larger than 10
+    case x > 10 => 36                   // `x` is larger than 10
 }
 ```
 
-### Module Concept
+## Module Concept
 
 Goal: Merge EcmaScript5 module concept with access-level concept of objects.
 
@@ -851,14 +882,15 @@ The module concept is similar to that of EcmaScript5.
 
 The source files or IL files of each library defines its own module.
 
-You can import other modules either if their are available as source or as IL files with the keyword `import`:
+You can import other modules either if their are available as source or as IL files with the function `import`:
 
 Example: Importing local file *./package/module.chop*
 
 ```code
-import ./package/module_x     // The extension is skipped
+module_x :- import ./package/module_x     // The extension is skipped
 ```
 
+`import` does not need be implemented in the compiler itself. It is implemented in a default imported module using meta-programming.
 You can think of that as if the compiler would insert a `{` in the first line and `}` at the last line of the imported file and paste them into the importing file.
 
 This means the imported file gets its own scope named *module_x* here and therefore only the declarations marked as `public` (`internal` see later) can be used here.
@@ -874,12 +906,12 @@ new_module_name :- import old_module_name
 It is also possible to import modules from public repositories. For instance
 
 ```code
-import www.github.com/publisher/package/module_x     // The extension is skipped
+module_x :- import www.github.com/publisher/package/module_x     // The extension is skipped
 ```
 
 Even if the source code is not public, it is also possible to import the IR code of the package without limitations.
 
-#### Creating bundles
+### Creating bundles
 
 Unfortunately it is not convenient to import a bunch of modules only to use several functionalities of on library.
 
@@ -888,12 +920,8 @@ To avoid the author of the library can bundle there functionality via re-imports
 The main_module might look as:
 
 ```code
-import ./sub_module_a
-import ./sub_module_b
-
-
-public sub_module_a
-public sub_module_b
+sub_module_a :+ import ./sub_module_a
+sub_module_b :+ import ./sub_module_b
 ```
 
 This can be imported as
@@ -937,23 +965,26 @@ import my_library
 
 can have access to all public elements of the whole library.
 
-#### Internal modules
+### Internal modules
 
 In order to safe IP you can hide internal code with the keyword `internal`.
 
 `internal` declarations are not public from JL files.
 
-### Meta-Programming
+> TODO: It might be better that everything must be marked explicit as public.
+
+## Meta-Programming
 
 tbd
 
 Some ideas:
 
-* Using `$` as prefix?
+* Using `$` as prefix? Pro: the `$` Symbol means always go one meta-layer deeper: `a := "env: $$$USER"` is the shell environment variable of the compiler process placed in a string of the compiled program.
 * Replacing code generators. (e.g. no need for `protoc` anymore)
 * Annotating code with custom qualifiers, which checking (e.g. `real-time` or `license`; or guaranties safety to a norm *ISO26262*)
+* It should also be possible to read and write files during compilation with the standard File API. Use Cases: Generating schemas and documents during compiling out of the code. 
 
-#### Meta programming
+### Meta programming
 
 Example: Writing a JSON serializer
 
@@ -977,12 +1008,12 @@ jsonify(obj) = {
     json: = "{\n"
     type := $obj.type       // With $ you can access compiler information of a variable or any other symbol
     // type is now a compiler variable (similar to constexpr in C++)
-    member_loop :- for {name :- key, member :- value} in type.members {     // Done in compile-time Note "type.members" is hashmap
+    member_loop :- $for {name :- key} in type.members {     // Done in compile-time Note "type.members" is hashmap
         json += s"\"$name\": "
         json += match member.type {                 // Match gets evaluated during compile-time
-            case int | float: member.value          // toString get optional called
-            case string: s"\"${member.value}\""
-            case object: jsonify(member.value)
+            case int | float: $obj[name]            // toString get optional called
+            case string: s"\"${$obj[name]}\""
+            case object: jsonify($obj[name])
         }
         if !member_loop.isLast                      // Accessing for loops internal states (only allowed because type.members support random access to its items)
             json += ",\n"
@@ -1002,7 +1033,9 @@ obj: MyType = ...
 json := jsonify(obj)        // Not that the compiler will evaluate the template here. (Type Caching possible)
 ```
 
-#### Custom Annotations
+### Custom Annotations
+
+**Needs refinement**
 
 ```code
 foo_realtime(x: int) = @realtime {
@@ -1024,7 +1057,17 @@ foo() = @realtime {
 
 Implementation via meta-programming: tbd
 
-#### Injecting custom compiler information into to IL
+## Certification
+
+In order to simplify safety, security or realtime certifications, the compiler supports several tooling.
+
+Each function has a secrets store which can store some X-critical tags.
+These tags can only be set by an authority.
+The compiler can verify the correctness of the tags in local secret store by that authority.
+
+The authority can define rules in which can be used to derive these tags to other functions.
+
+### Injecting custom compiler information into to IL
 
 You can access compiler variables directly with the `$$` prefix.
 
@@ -1042,17 +1085,129 @@ import ./my_lib
 lib_vendor := $$my_lib.vendor
 ```
 
-> Note `$_.a` is the same as `$a`  
+> Note `$_["a"]` is the same as `$a`  
 > Note: Compiler implementation detail: `$` is a hashmap where all compiler relevant information about that scope is stored.  
 > TODO: Is is it also possible to archive that with `const` which declares variables which are only visible by the compiler front-end?
 
-### Code sanitizing
+## Code sanitizing
 
 In order to avoid cryptic, verbose and unreadable compiler errors known from some C++ templates, the author of meta-functions should be able to check the arguments and create custom error messages on invalid arguments.
 
 ## Developer Experience
 
 * The compiler should detect as much type (and lifetime) information out of the code as possible in order to reduce the amount of annotations written by the developer and make the code more concise.
+
+## Use Cases
+
+### Objects of different type in a vector
+
+```c++
+class Base{
+ public:
+  virtual foo() = 0; 
+};
+
+class A : public Base{
+ public:
+  foo() override { /* ... */};
+ private:
+  int a;
+};
+
+class B : public Base{
+ public:
+  foo() override { /* ... */};
+ private:
+  int b,c;
+};
+
+int main(int, char**) {
+    std::vector<Base*> v;
+    v.push_back(new A());
+    v.push_back(new B());
+
+    for(auto item : v) {
+        item->foo();
+    }
+    return 0;
+}
+```
+
+```code
+type Base {
+    foo : () => void;
+}
+
+create_a := () => {
+    a :+ ...
+    foo :+ () => ...
+}
+
+create_b := () => {
+    b :+ ...
+    c :+ ...
+    foo :+ () => ...
+}
+
+create_c := () => {
+    fii :+ () => ...
+}
+
+postfix .faa := (obj) => obj.foo  // Compiler knows that obj must have member foo
+
+v := Vector<Box<Base>>::new()
+
+v.push(Box.new(create_a))      // Compiler aligns memory layout to Base here
+v.push(Box.new(create_b))      // Compiler aligns memory layout to Base here
+v.push(Box.new(create_c))      // error: member foo is missing
+
+create_c.faa                    // error: member foo is missing
+
+for item in v.iter {
+    item.unwrap.foo             // Brackets () are optional
+    item.unwrap.faa
+}
+```
+
+### Async/Await or Event loops
+
+**[TODO]**
+
+### Encapsulation
+
+```c++
+class A {
+ private:
+  int a;
+ public:
+  A(): a(0) {}
+  int inc() {
+   return a++;
+  }
+};
+
+A obj;
+int a = obj.inc();
+int b = obj.a;              // error: a is private          
+
+```
+
+```chop
+A := {
+  new :+ () => {
+      mut a :+ 0        // How to make this protected? another syntax ?
+  }
+  postfix .inc :+ (obj) => {
+      obj.a++
+  }
+}
+
+obj := A.new            // Should this be mut obj := A.new ?
+a := obj.inc
+b := obj.a              // no error :(
+```
+
+**[TODO]**
 
 ## Notes on compiler implementation
 
@@ -1063,8 +1218,8 @@ In order to avoid cryptic, verbose and unreadable compiler errors known from som
   * fast searchable
 * Motivation:
   1. Caching parsers work
+  1. Storing function's signature with predicates
   1. Protecting IP for proprietary libraries
-* Allows C++ inspired templates
 * Can be translated to LLVM-IR
 * No runtime code optimization (this gets done by LLVM back-end)
 
