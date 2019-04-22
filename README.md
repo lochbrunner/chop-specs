@@ -5,9 +5,8 @@ Goal:
 > Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
 
 * System language (inspired by Rust)
-* Unifies the syntax of similar use cases.
-* Extendable by the User
-* Using the same language for program, meta-programming and build configuration
+* Powerful but simple language: Unifies the syntax of similar use cases to be consistent with minimal exceptions.
+* Extendable by the User: Using the same language for program, meta-programming and build configuration
 
 All features of that language are specified by examples.
 
@@ -18,7 +17,7 @@ All features of that language are specified by examples.
 * Zero runtime cost abstraction (-> No *GC*)
 * Few keywords
 * Allows expressive code (less boilerplate than *rust*)
-* Also suitable for creating proprietary and/or certified libraries
+* Also suitable for creating proprietary and/or certified libraries (using secret store)
 * Generating docs out of the code (empowered by meta-programming)
 * Research topic: Dynamic memory allocation on the stack (bind to the scope)
 
@@ -596,34 +595,35 @@ Virtual functions are only allowed to instances and not to types.
 
 
 
-#### Abstract Extension Definitions
+### Operators
+
+
+> type `#` precedence operator-name `:=` or `:+` `(` argument(s) `)` `=>` definition.
+
+With
+ * **type** is one of `infix`,  `postfix` or `prefix`
+ * **precedence** specifies the order of evaluation compared to other operators. Must be `SUM`, `PRODUCT` or `EXPONENTIAL`. With a leading `<` or `>` you can specify the precedence one lower or higher than the specified one.
+
+Example:
 
 ```code
-infix .addTwice := (left, right) => left + right*2
+infix#SUM + := (left, right) => left.unwrap + right.unwrap
 ```
 
 Which can be attached to each type which has `+` operation defined.
 
 > Hint: This can be used for creating iterators used by for loops.
->
-> Open Points
->
-> * How to namespace Operators?  
->   Proposal: Operators must be imported (explicitly)  
->   What about standard arithmetic operators (e.g. `2+3`) ?
-> * How to specify the precedence of the new operator?
-> * How to specify the type (e.g. infix, postfix or prefix) of the new operator?
 
 ## Piping
 
 Inspired by Unix Pipes
 
-> Note: Many open points here!
+**Needs refinement**
 
-### Basics: Named pipe
+### Channels
 
 ```code
-my_pipe: pipe<int>
+my_channel: channel<int>
 
 foo := () => {
     result: int;
@@ -632,30 +632,38 @@ foo := () => {
     result
 }
 
-lazy my_pipe << foo()
+lazy my_channel << foo()
 // Nothing happened so far
 
-i :<< my_pipe       // Here foo gets called
+i :<< my_channel       // Here foo gets called
 ```
 
 Using as a generator
 
 ```code
-fibonacci() := {
-    shared result: pipe<int>    // named pipes should always have `shared` ownership
+fibonacci := () => {
+    {receiver, sender} := channel<int>::new
     i = 0
     j = 1
 
-    // The lazy loop gets only evaluated when the someone reads from the pipe
+    // The lazy loop gets only evaluated when the someone reads from the channel
     lazy loop {
         t := i + j
         i <- j
         j <- t
-        result << t
+        sender << t                 // This line triggers the lazy loop
     }
-    result
+    receiver
+}
+
+for value in fibonacci.iter.take(5) {
+    stderr.print(value)
 }
 ```
+
+Or is it better to use `yield return` ?
+
+Prints the first five Fibonacci numbers to the standard error.
 
 ### Pipe compositions
 
@@ -995,6 +1003,8 @@ json := jsonify(obj)        // Not that the compiler will evaluate the template 
 
 ### Custom Annotations
 
+**Needs refinement**
+
 ```code
 foo_realtime(x: int) = @realtime {
     x+2
@@ -1015,7 +1025,15 @@ foo() = @realtime {
 
 Implementation via meta-programming: tbd
 
-TODO: Security
+## Certification
+
+In order to simplify safety, security or realtime certifications, the compiler supports several tooling.
+
+Each function has a secrets store which can store some X-critical tags.
+These tags can only be set by an authority.
+The compiler can verify the correctness of the tags in local secret store by that authority.
+
+The authority can define rules in which can be used to derive these tags to other functions.
 
 ### Injecting custom compiler information into to IL
 
@@ -1118,6 +1136,46 @@ for item in v.iter {
     item.unwrap.faa
 }
 ```
+
+### Async/Await or Event loops
+
+**[TODO]**
+
+### Encapsulation
+
+```c++
+class A {
+ private:
+  int a;
+ public:
+  A(): a(0) {}
+  int inc() {
+   return a++;
+  }
+};
+
+A obj;
+int a = obj.inc();
+int b = obj.a;              // error: a is private          
+
+```
+
+```chop
+A := {
+  new :+ () => {
+      mut a :+ 0        // How to make this protected? another syntax ?
+  }
+  postfix .inc :+ (obj) => {
+      obj.a++
+  }
+}
+
+obj := A.new            // Should this be mut obj := A.new ?
+a := obj.inc
+b := obj.a              // no error :(
+```
+
+**[TODO]**
 
 ## Notes on compiler implementation
 
