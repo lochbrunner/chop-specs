@@ -29,7 +29,7 @@ Tools
 Inspired by
 
 * C: The syntactical base
-* rust: move semantic and checkers
+* rust: move semantic, borrowing and lifetime
 * Go: syntax and module system
 * Scala: syntax
 * JavaScript (TypeScript): module system
@@ -353,13 +353,13 @@ type TypeB = {
 then
 
 ```code
-type TypeAandB = TypeA & TypeB
+type TypeAAndB = TypeA & TypeB
 ```
 
 results in
 
 ```code
-type TypeAandB = {
+type TypeAAndB = {
     a: int
     b: int
     c: int
@@ -523,6 +523,37 @@ foo := (arg: Argument) => {
 ```
 
 > Hint: You can skip the curly bracket if there is only one expression.
+
+#### Syntactical Sugar
+
+##### Block as argument
+
+> Under discussion
+
+```code
+do_twice(code: Body) := {
+    code
+    code
+}
+```
+
+Possible use case implementing of *defer*.
+
+##### Leaving round brackets
+
+Similar to Groovy
+
+> Under discussion
+
+```code
+print := (text) => {
+    // ...
+}
+
+
+// Usage
+print "Hello, World!"
+```
 
 #### Higher order functions
 
