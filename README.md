@@ -675,6 +675,28 @@ factory := (a:+, b:+) => {
 
 Where `a` and `b` gets captured.
 
+#### Batch processing
+
+```code
+transform := (x) => x * 2 + 3
+
+a,b := transform(3,5)
+// a = 9
+// b = 13
+```
+
+Better
+
+```code
+transform := _ * 2 + 3
+
+a,b := transform(3,5)
+// Or
+a,b := (3,5)*2+3
+// a = 9
+// b = 13
+```
+
 ## Piping
 
 **Experimental!**
