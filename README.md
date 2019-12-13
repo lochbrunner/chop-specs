@@ -13,11 +13,12 @@ All features of that language are specified by examples.
 ## Features
 
 * Static and structural typed (Most type and lifetime annotations can be omitted due to inferring capability of the compiler)
-* Meta programming with ease and language server support
+* Meta programming should look and feel as the *runtime* code. With language server support
 * Zero runtime cost abstraction (-> No *GC*)
-* Few keywords
+* Few keywords and syntactical exceptions.
 * Allows expressive code (less boilerplate than *rust*)
 * Also suitable for creating proprietary and/or certified libraries (using secret store)
+* Consistent and easy build and dependency management.
 * Generating docs out of the code (empowered by meta-programming)
 * Research topic: Dynamic memory allocation on the stack (bind to the scope)
 
@@ -35,6 +36,8 @@ Inspired by
 * Go: syntax and module system
 * Scala: syntax
 * JavaScript (TypeScript): module system, syntax
+
+See [Proof of Concept](https://github.com/lochbrunner/chop-compiler) implementation.
 
 ## Examples
 
@@ -646,7 +649,35 @@ Which can be attached to each type which has `+` operation defined.
 
 > Hint: This can be used for creating iterators used by for loops.
 
+### Experimental
+
+#### Constructor Sugar
+
+Inspired by Scala's primary constructor.
+
+Instead of creating a object with:
+
+```code
+factory := (a, b) => {
+    a :+ a
+    b :+ b
+    c :+ a + b
+}
+```
+
+Write
+
+```code
+factory := (a:+, b:+) => {
+    c :+ a + b
+}
+```
+
+Where `a` and `b` gets captured.
+
 ## Piping
+
+**Experimental!**
 
 Inspired by Unix Pipes
 
