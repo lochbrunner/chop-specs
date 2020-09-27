@@ -7,6 +7,7 @@ Goal:
 * System language (inspired by Rust)
 * Powerful but simple language: Unifies the syntax of similar use cases to be consistent with minimal exceptions.
 * Extendable by the User: Using the same language for program, meta-programming and build configuration
+* One language for shell scripting and system programing. (Unification of Bash, Python and C++)
 
 All features of that language are specified by examples.
 
@@ -1275,6 +1276,42 @@ b := obj.a              // no error :(
   1. Protecting IP for proprietary libraries
 * Can be translated to LLVM-IR
 * No runtime code optimization (this gets done by LLVM back-end)
+
+
+## Shell
+
+With config in `~.choprc` as
+
+```config
+import unix
+```
+
+This should provide you a Unix like shell experience 
+
+```code
+ls
+```
+
+where the result type of `unix.ls` implements the interface
+
+```code
+type ConsoleOutout {
+    progress: () -> f32,
+    result: string
+}
+```
+
+### Summary:
+
+The Unix shell command `ls` is nothing else than a public function in the module unix which returns a type that can be displayed on the console.
+
+Advantages:
+
+ * One language for each kind of task: All language features in shell scripts.
+ * Avoid subprocess calls
+ * One can use the same function in other programs as well and the function writer does not have to take care about formatting such as progress bar painting and other complex user interactions.
+
+
 
 ## Open points
 
