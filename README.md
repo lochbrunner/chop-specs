@@ -7,6 +7,7 @@ Goal:
 * System language (inspired by Rust)
 * Powerful but simple language: Unifies the syntax of similar use cases to be consistent with minimal exceptions.
 * Extendable by the User: Using the same language for program, meta-programming and build configuration
+* The complexity of the source code should be linear in the complexity of the problem.
 
 All features of that language are specified by examples.
 
