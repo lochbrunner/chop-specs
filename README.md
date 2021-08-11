@@ -8,17 +8,19 @@ Goal:
 * Powerful but simple language: Unifies the syntax of similar use cases to be consistent with minimal exceptions.
 * Extendable by the User: Using the same language for program, meta-programming and build configuration
 * The complexity of the source code should be linear in the complexity of the problem.
+* One language for shell scripting and system programing. (Unification of Bash, Python and C++)
 
 All features of that language are specified by examples.
 
 ## Features
 
 * Static and structural typed (Most type and lifetime annotations can be omitted due to inferring capability of the compiler)
-* Meta programming with ease and language server support
+* Meta programming should look and feel as the *runtime* code. With language server support
 * Zero runtime cost abstraction (-> No *GC*)
-* Few keywords
+* Few keywords and syntactical exceptions.
 * Allows expressive code (less boilerplate than *rust*)
 * Also suitable for creating proprietary and/or certified libraries (using secret store)
+* Consistent and easy build and dependency management.
 * Generating docs out of the code (empowered by meta-programming)
 * Research topic: Dynamic memory allocation on the stack (bind to the scope)
 
@@ -36,6 +38,8 @@ Inspired by
 * Go: syntax and module system
 * Scala: syntax
 * JavaScript (TypeScript): module system, syntax
+
+See [Proof of Concept](https://github.com/lochbrunner/chop-compiler) implementation.
 
 ## Examples
 
@@ -647,7 +651,57 @@ Which can be attached to each type which has `+` operation defined.
 
 > Hint: This can be used for creating iterators used by for loops.
 
+### Experimental
+
+#### Constructor Sugar
+
+Inspired by Scala's primary constructor.
+
+Instead of creating a object with:
+
+```code
+factory := (a, b) => {
+    a :+ a
+    b :+ b
+    c :+ a + b
+}
+```
+
+Write
+
+```code
+factory := (a:+, b:+) => {
+    c :+ a + b
+}
+```
+
+Where `a` and `b` gets captured.
+
+#### Batch processing
+
+```code
+transform := (x) => x * 2 + 3
+
+a,b := transform(3,5)
+// a = 9
+// b = 13
+```
+
+Better
+
+```code
+transform := _ * 2 + 3
+
+a,b := transform(3,5)
+// Or
+a,b := (3,5)*2+3
+// a = 9
+// b = 13
+```
+
 ## Piping
+
+**Experimental!**
 
 Inspired by Unix Pipes
 
@@ -1223,6 +1277,42 @@ b := obj.a              // no error :(
   1. Protecting IP for proprietary libraries
 * Can be translated to LLVM-IR
 * No runtime code optimization (this gets done by LLVM back-end)
+
+
+## Shell
+
+With config in `~.choprc` as
+
+```config
+import unix
+```
+
+This should provide you a Unix like shell experience 
+
+```code
+ls
+```
+
+where the result type of `unix.ls` implements the interface
+
+```code
+type ConsoleOutout {
+    progress: () -> f32,
+    result: string
+}
+```
+
+### Summary:
+
+The Unix shell command `ls` is nothing else than a public function in the module unix which returns a type that can be displayed on the console.
+
+Advantages:
+
+ * One language for each kind of task: All language features in shell scripts.
+ * Avoid subprocess calls
+ * One can use the same function in other programs as well and the function writer does not have to take care about formatting such as progress bar painting and other complex user interactions.
+
+
 
 ## Open points
 
