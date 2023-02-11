@@ -22,7 +22,7 @@ All features of that language are specified by examples.
 * Also suitable for creating proprietary and/or certified libraries (using secret store)
 * Consistent and easy build and dependency management.
 * Generating docs out of the code (empowered by meta-programming)
-* Research topic: Dynamic memory allocation on the stack (bind to the scope)
+* Experimental: Dynamic memory allocation on the stack (bind to the scope)
 
 Tools
 
@@ -61,13 +61,13 @@ x: int32 := 1
 
 Define a public variable:
 
-```
+```code
 x :+ 1
 ```
 
 which can be accessed from outside the block:
 
-```
+```code
 a := {b:+12}.b  // a is now 12
 ```
 
@@ -85,7 +85,7 @@ x <- 2          // assignment
 
 Inspired by rust
 
-```
+```code
 a := "12.34"
 a := parse(a)       // Shadows the variable declaration above
 ```
@@ -279,8 +279,6 @@ y := match x {
   * `uint32` or `u32`
   * `uint64`  or `u64`
 * Floating point types
-  * `float8` or `f8`
-  * `float16` or `f16`
   * `float32` or `f32` Using `float` as alias?
   * `float64` or `f64`
 
@@ -391,7 +389,7 @@ type TypeAorB = {
 
 ### Constraints on types
 
-```
+```code
 type Evens = 2*i with i: int32
 ```
 
@@ -630,16 +628,14 @@ MyType.foo <- (a:int) => {}     // error <- to undeclared foo is not allowed
 
 Virtual functions are only allowed to instances and not to types.
 
-
-
 ### Operators
-
 
 > type `#` precedence operator-name `:=` or `:+` `(` argument(s) `)` `=>` definition.
 
 With
- * **type** is one of `infix`,  `postfix` or `prefix`
- * **precedence** specifies the order of evaluation compared to other operators. Must be `SUM`, `PRODUCT` or `EXPONENTIAL`. With a leading `<` or `>` you can specify the precedence one lower or higher than the specified one.
+
+* **type** is one of `infix`,  `postfix` or `prefix`
+* **precedence** specifies the order of evaluation compared to other operators. Must be `SUM`, `PRODUCT` or `EXPONENTIAL`. With a leading `<` or `>` you can specify the precedence one lower or higher than the specified one.
 
 Example:
 
@@ -850,6 +846,12 @@ composition :=
 * Can be used for *dependency injection*
 * Keywords: `set` and `require`
 
+### Motivation
+
+Forwarding parameters though a long
+
+### Examples
+
 ```code
 foo(x) =  {
     require a: logger: (string) => void
@@ -881,7 +883,25 @@ lazy env := {
 
 ```
 
-> TODO: Can be converged with the `:-` operator ala: replace `lazy env := {...}` with `env :- {...}` ?  
+> TODO: Can be converged with the `:-` operator ala: replace `lazy env := {...}` with `env :- {...}` ?
+
+### Alternative
+
+Use `**kwargs` concept from Python, but type checked and not implemented as a dictionary.
+
+Maybe something like this:
+
+```code
+bar := (...kwargs) => {
+    b: int := kwargs.b
+}
+
+foo := (a: int, ...kwargs) => {
+    bar(..kwargs)
+}
+
+foo(a=1, b=2)
+```
 
 ## Control Statements
 
@@ -1030,16 +1050,28 @@ In order to safe IP you can hide internal code with the keyword `internal`.
 
 ## Meta-Programming
 
-tbd
+This is the most notable feature of that language.
+It should allow to extend the language in an easy and powerful way, without introducing too much new syntax.
 
 Some ideas:
 
 * Using `$` as prefix? Pro: the `$` Symbol means always go one meta-layer deeper: `a := "env: $$$USER"` is the shell environment variable of the compiler process placed in a string of the compiled program.
-* Replacing code generators. (e.g. no need for `protoc` anymore)
+* Replacing code generators. ~~(e.g. no need for `protoc` anymore)~~
 * Annotating code with custom qualifiers, which checking (e.g. `real-time` or `license`; or guaranties safety to a norm *ISO26262*)
-* It should also be possible to read and write files during compilation with the standard File API. Use Cases: Generating schemas and documents during compiling out of the code. 
+* It should also be possible to read and write files during compilation with the standard File API. Use Cases: Generating schemas and documents during compiling out of the code.
 
-### Meta programming
+### Motivation
+
+1. Compiler development is time consuming and needs a big portion of domain knowledge.
+In many cases only a few new features are needed.
+Extending the compiler using the very similar syntax as for the main language should lower the barrier.
+1. The creativity of the Open-Source community has come up with many innovative ideas that were implemented as programming libraries. What if we could leverage the same amount of creativity and productivity to build an amazing compiler?
+1. Moving logic from run-time to compile-time has several advantages:
+    1. Faster at runtime.
+    1. Earlier catch of bugs.
+    1. More information can be exposed to the IDE.
+
+### Examples
 
 Example: Writing a JSON serializer
 
@@ -1264,7 +1296,7 @@ b := obj.a              // no error :(
 
 **[TODO]**
 
-## Notes on compiler implementation
+## Notes on Compiler Implementation
 
 ### Intermediate Language
 
@@ -1278,7 +1310,6 @@ b := obj.a              // no error :(
 * Can be translated to LLVM-IR
 * No runtime code optimization (this gets done by LLVM back-end)
 
-
 ## Shell
 
 With config in `~.choprc` as
@@ -1287,7 +1318,7 @@ With config in `~.choprc` as
 import unix
 ```
 
-This should provide you a Unix like shell experience 
+This should provide you a Unix like shell experience
 
 ```code
 ls
@@ -1302,17 +1333,15 @@ type ConsoleOutout {
 }
 ```
 
-### Summary:
+### Summary
 
 The Unix shell command `ls` is nothing else than a public function in the module unix which returns a type that can be displayed on the console.
 
 Advantages:
 
- * One language for each kind of task: All language features in shell scripts.
- * Avoid subprocess calls
- * One can use the same function in other programs as well and the function writer does not have to take care about formatting such as progress bar painting and other complex user interactions.
-
-
+* One language for each kind of task: All language features in shell scripts.
+* Avoid subprocess calls
+* One can use the same function in other programs as well and the function writer does not have to take care about formatting such as progress bar painting and other complex user interactions.
 
 ## Open points
 
