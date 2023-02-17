@@ -1,6 +1,12 @@
 # Chop Language Specifications
 
-Goal:
+## Motivation
+
+A typical day of a software engineer is often wasted with either fighting against the compiler, (e.g. unnessary type annotation is wrong, hard to understand compiler error messages) or late occuring bugs (e.g. a typo in a dynamicly typed language causes an experiment to fail).
+This language tries to free software engineers from long and tidious debugging sessions and over complicated source code.
+
+As it is often hard to predict which design choice might be better, there are sometimes mulitple redundant features in this language that addresses one single problem.
+After it turned out that one of those does not provide any real benefit, it might been dropped in the future.
 
 > Combine the top features of existing programming languages into one consistent and non-verbose and plausible programming language.
 
@@ -69,6 +75,12 @@ which can be accessed from outside the block:
 
 ```code
 a := {b:+12}.b  // a is now 12
+```
+
+#### Alternative
+
+```code
+.x := 1
 ```
 
 ### Mutable variables
@@ -171,10 +183,21 @@ stderr.write(x)             // Prints 14 to the std err
 
 ### Objects
 
+An object is nothing else than a scope with public variables.
+
 ```code
 obj := {
     a :+ 12
     b :+ a * 3
+}
+```
+
+or alternativly:
+
+```code
+obj := {
+    .a := 12
+    .b := a * 3
 }
 ```
 
@@ -300,7 +323,9 @@ Should be implemented as "template" types in **chop** itself.
 * Hash map: `map<Type>`
 * C++ `std::vector` : `vector`
 
-## Custom Types
+## Named Types
+
+Or Interfaces
 
 ```code
 type MyType = {
@@ -309,15 +334,6 @@ type MyType = {
     c: {
         d: int
     }
-}
-```
-
-Extending types
-
-```code
-type MyExtendedType = {
-    d: float32
-    ...MyType
 }
 ```
 
@@ -333,11 +349,35 @@ MyType :- {
 }
 ```
 
+Another alternative syntax
+
+```code
+MyType :- {
+    pub a: int
+    pub(1) b: string
+    c: {
+        d: int
+    }
+}
+```
+
+While `1` is the number of scope levels.
+
+Extending types
+
+```code
+type MyExtendedType = {
+    d: float32
+    ...MyType
+}
+```
+
+
 Questions: Is this possible?
 Problems:
 
 * Difference between types and scopes:
-  * In types everything is public
+  * In types everything is public. Really? Consider scoping of Rust.
 
 ### Combining types
 
@@ -1350,3 +1390,12 @@ Advantages:
 * Abbreviation:
   * `public` vs `->`
   * `require x: Type` vs `-> x: Type` or something else?
+
+
+## Other Pain-Points to trackle
+
+### Debugging:
+
+* Very large stacktrace
+* Missing context / function arguments in stacktrace
+* Cryptical displayed representation of variables.
