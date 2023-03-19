@@ -293,23 +293,23 @@ y := match x {
 ## Builtin Types
 
 * Integral types
-  * `int8` or `i8`
-  * `int16` or `i16`
-  * `int32` or `i32` Using `int` as alias?
-  * `int64` or `i64`
-  * `uint8` or `u8`
-  * `uint16` or `u16`
-  * `uint32` or `u32`
-  * `uint64`  or `u64`
+  * `i8`
+  * `i16`
+  * `i32`
+  * `i64`
+  * `u8`
+  * `u16`
+  * `u32`
+  * `u64`
 * Floating point types
-  * `float32` or `f32` Using `float` as alias?
-  * `float64` or `f64`
+  * `f32`
+  * `f64`
 
 ## Arrays
 
 ```code
-a := int[10]
-b := int[n]         // Figure out, if this is possible
+a := i32[10]
+b := i32[n]         // Figure out, if this is possible
 ```
 
 > Are arrays always extendable?
@@ -329,10 +329,10 @@ Or Interfaces
 
 ```code
 type MyType = {
-    a: int
+    a: i32
     b: string
     c: {
-        d: int
+        d: i32
     }
 }
 ```
@@ -341,10 +341,10 @@ Alternative syntax
 
 ```code
 MyType :- {
-    a: int
+    a: i32
     b: string
     c: {
-        d: int
+        d: i32
     }
 }
 ```
@@ -379,19 +379,34 @@ Problems:
 * Difference between types and scopes:
   * In types everything is public. Really? Consider scoping of Rust.
 
+### Methods
+
+Types have a special mutability that allows to extend (non virtual) methods.
+
+```code
+MyType :- {
+    a: i32
+}
+
+MyType.foo :- (self, b: i32) => self.a + b
+
+obj := {a:+ 43}
+stdout obj.foo(21)
+```
+
 ### Combining types
 
 Having
 
 ```code
 type TypeA = {
-    a: int
-    c: int
+    a: i32
+    c: i32
 }
 
 type TypeB = {
-    b: int
-    c: int
+    b: i32
+    c: i32
 }
 ```
 
@@ -405,9 +420,9 @@ results in
 
 ```code
 type TypeAAndB = {
-    a: int
-    b: int
-    c: int
+    a: i32
+    b: i32
+    c: i32
 }
 ```
 
@@ -421,7 +436,7 @@ results in
 
 ```code
 type TypeAorB = {
-    c: int
+    c: i32
 }
 ```
 
@@ -439,7 +454,7 @@ Using alias for destructuring
 
 ```code
 type SampleType = {
-    a: int
+    a: i32
     b: string
     c: {
         d: float
@@ -509,7 +524,7 @@ Possible solution: Each token which can not be parsed with standard tokenizer ge
 ## Functions
 
 ```code
-foo := (a: int) => {
+foo := (a: i32) => {
     a * a
 }
 ```
@@ -517,7 +532,7 @@ foo := (a: int) => {
 with explicit type
 
 ```code
-foo: int -> int := (a: int) => {
+foo: i32 -> i32 := (a: i32) => {
     a * a
 }
 ```
@@ -525,7 +540,7 @@ foo: int -> int := (a: int) => {
 or
 
 ```code
-foo(a: int) := {
+foo(a: i32) := {
     a * a
 }
 ```
@@ -533,7 +548,7 @@ foo(a: int) := {
 or simply
 
 ```code
-foo(a: int) := a * a
+foo(a: i32) := a * a
 ```
 
 You can create template function when using the `any` type
@@ -560,7 +575,7 @@ t := foo(3)             // Ok
 Using a type as anonymous argument:
 
 ```code
-type Argument = {a: int}
+type Argument = {a: i32}
 foo := (Argument) => {
     a * a
 }
@@ -569,7 +584,7 @@ foo := (Argument) => {
 is not the same as
 
 ```code
-type Argument = {a: int}
+type Argument = {a: i32}
 foo := (arg: Argument) => {
     arg.a * arg.a
 }
@@ -617,13 +632,13 @@ This means that all constraints must be available in the intermediate language d
 ### Higher order functions
 
 ```code
-foo := (arg1: int) => (arg2: int) => arg1 * arg2
+foo := (arg1: i32) => (arg2: i32) => arg1 * arg2
 ```
 
 ### Argument binding
 
 ```code
-foo := (arg1: int) => (arg2: int) => arg1 * arg2
+foo := (arg1: i32) => (arg2: i32) => arg1 * arg2
 foo1 := foo(12)
 ```
 
@@ -632,9 +647,9 @@ foo1 := foo(12)
 By default parameters have block scope and therefor it uses "call by value"
 
 ```code
-foo := (x: int) => {}
+foo := (x: i32) => {}
 
-faa := (x: &int) => {}
+faa := (x: &i32) => {}
 
 i := 12
 j := 13
@@ -647,7 +662,7 @@ faa(&j)         // j gets borrowed
 ### Extensions
 
 ```code
-MyType.foo := (a: int) => {
+MyType.foo := (a: i32) => {
     this.a = a
 }
 ```
@@ -655,7 +670,7 @@ MyType.foo := (a: int) => {
 Assigning extensions to multiple types:
 
 ```code
-(MyType1 | MyType2).foo := (a: int) => {
+(MyType1 | MyType2).foo := (a: i32) => {
     this.a = a
 }
 ```
@@ -663,7 +678,7 @@ Assigning extensions to multiple types:
 > Note Extensions are immutable. Which means you can not assign an extension function with the same name and signature to type.
 
 ```code
-MyType.foo <- (a:int) => {}     // error <- to undeclared foo is not allowed
+MyType.foo <- (a:i32) => {}     // error <- to undeclared foo is not allowed
 ```
 
 Virtual functions are only allowed to instances and not to types.
@@ -746,10 +761,10 @@ Inspired by Unix Pipes
 ### Channels
 
 ```code
-my_channel: channel<int>
+my_channel: channel<i32>
 
 foo := () => {
-    result: int;
+    result: i32;
     // Do some magic
     // ...
     result
@@ -765,7 +780,7 @@ Using as a generator
 
 ```code
 fibonacci := () => {
-    {receiver, sender} := channel<int>::new
+    {receiver, sender} := channel<i32>::new
     i = 0
     j = 1
 
@@ -895,7 +910,7 @@ Forwarding parameters though a long
 ```code
 foo(x) =  {
     require a: logger: (string) => void
-    require a: int
+    require a: i32
     logger("Entering foo")
     b := a              // Accessing variable of caller
 }
@@ -933,10 +948,10 @@ Maybe something like this:
 
 ```code
 bar := (...kwargs) => {
-    b: int := kwargs.b
+    b: i32 := kwargs.b
 }
 
-foo := (a: int, ...kwargs) => {
+foo := (a: i32, ...kwargs) => {
     bar(..kwargs)
 }
 
@@ -982,10 +997,34 @@ x = a.x                     // x has now the value of foo()
 
 ```code
 y := match x {
-    case t: Type1 => t.foo()            // Match concrete type
-    case s: any & {m: int} => s.m       // `x` contains integer member `m`
-    case u: any & {m: 12} => 34         // `x` member `m` has value `12`
-    case x > 10 => 36                   // `x` is larger than 10
+    t: Type1 => t.foo()            // Match concrete type
+    s: any & {m: i32} => s.m       // `x` contains integer member `m`
+    u: any & {m: 12} => 34         // `x` member `m` has value `12`
+    x > 10 => 36                   // `x` is larger than 10
+}
+```
+
+Note the syntax is very similar to function definitions.
+Therefore you can create runtime dispatcher like that.
+
+```code
+foo_caller := (t: Type1) => t.foo() 
+m_accessor := (s: any & {m: i32}) => s.m
+special_m_member := (u: any & {m: 12}) => 34
+greater_than := (x > 10) => 36
+
+y := match x {
+    foo_caller
+    m_accessor
+    special_m_member
+    greater_than
+}
+
+generic_foo := match {
+    foo_caller
+    m_accessor
+    special_m_member
+    greater_than
 }
 ```
 
@@ -1119,10 +1158,10 @@ The type to serialize
 
 ```code
 type MyType = {
-    a: int
+    a: i32
     b: string
     c: {
-        d: int
+        d: i32
         e: float
     }
 }
@@ -1138,7 +1177,7 @@ jsonify(obj) = {
     member_loop :- $for {name :- key} in type.members {     // Done in compile-time Note "type.members" is hashmap
         json += s"\"$name\": "
         json += match member.type {                 // Match gets evaluated during compile-time
-            case int | float: $obj[name]            // toString get optional called
+            case i32 | float: $obj[name]            // toString get optional called
             case string: s"\"${$obj[name]}\""
             case object: jsonify($obj[name])
         }
@@ -1165,11 +1204,11 @@ json := jsonify(obj)        // Not that the compiler will evaluate the template 
 **Needs refinement**
 
 ```code
-foo_realtime(x: int) = @realtime {
+foo_realtime(x: i32) = @realtime {
     x+2
 }
 
-foo_no_realtime(x: int) = {
+foo_no_realtime(x: i32) = {
     // Doing some stuff like
     // dynamic memory allocation/de-allocation
     // Calling non real-time functions
