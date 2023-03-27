@@ -18,6 +18,13 @@ After it turned out that one of those does not provide any real benefit, it migh
 
 All features of that language are specified by examples.
 
+## Addressed Pain Points
+
+* Runtime dispatching makes it hard follow the code path. Compile time dispatching might be a solution.
+* Configuration managment is mostly a diffcult tradeoff. (E.g. overwriting, forwarding, ...)
+* Adding valueable debug information at different layers of a callstack for thrown an exception.
+* Difficult and limited macro definition syntax. 
+
 ## Features
 
 * Static and structural typed (Most type and lifetime annotations can be omitted due to inferring capability of the compiler)
